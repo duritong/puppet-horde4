@@ -10,7 +10,6 @@ class horde4::base{
   include php::packages::cache
   include php::packages::intl
   include php::packages::gettext
-  include php::extensions::pecl::fileinfo
   include aspell
 
 }
