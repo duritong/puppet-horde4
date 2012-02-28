@@ -1,4 +1,5 @@
 define horde4::instance(
+  $ensure = 'present',
   $domainalias = 'absent',
   $run_uid,
   $run_gid,
@@ -84,8 +85,25 @@ define horde4::instance(
       "/var/www/vhosts/${name}/tmp":
         ensure => directory,
         owner => $name, group => $name, mode => 0640;
+#      "/var/www/vhosts/${name}/pear.conf":
+#        content => template('horde4/pear.conf.erb'),
+#        owner => root, group => $name, mode => 0640;
     }
+
+#    exec{
+#      "instal_pear_for_${name}":
+#        command => "pear -c /var/www/vhosts/${name}/pear.conf install pear",
+#        creates => "/var/www/vhosts/${name}/pear/pear";
+#      "install_horde_for_${name}":
+#        command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde",
+#        creates => "/var/www/vhosts/${name}/index.php",
+#        require => Exec["instal_pear_for_${name}"];
+#
+#    }
+
   }
+
+
 
 /*
   if hiera('use_nagios',false) {
