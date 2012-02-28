@@ -1,9 +1,8 @@
-class horde4::instance(
+define horde4::instance(
   $domainalias = 'absent',
   $run_uid,
   $run_gid,
   $wwwmail = false
-
 ){
 
   user::managed{$name:
