@@ -117,7 +117,7 @@ define horde4::instance(
         notify => Exec["fix_horde_perms_for_${name}"],
         user => $name,
         require => Exec["instal_pear_for_${name}"];
-      "install_horde_for_${name}":
+      "install_webmail_for_${name}":
         command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/webmail",
         creates => "/var/www/vhosts/${name}/www/index.php",
         user => $name,
