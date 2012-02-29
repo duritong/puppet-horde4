@@ -88,7 +88,7 @@ define horde4::instance(
 
   if $ensure == 'present' {
     require horde4::base
-
+    require git
 
     file{
       "/var/www/vhosts/${name}/pear":
@@ -138,6 +138,18 @@ define horde4::instance(
       "fix_horde_perms_for_${name}":
         command => "chown root:${name} /var/www/vhosts/${name}/www/* -R",
         refreshonly => true;
+      "init_git_repo_for_horde_${name}":
+        command => "git init",
+        creates => "/var/www/vhosts/${name}/www/.git",
+        cwd => "/var/www/vhosts/${name}/www",
+        require => Exec["fix_horde_perms_for_${name}"];
+    }
+
+    file{"/var/www/vhosts/${name}/www/.gitignore":
+      content => "*\n!config/*\n!*!*/config/\n",
+      replace => false,
+      require => Exec["init_git_repo_for_horde_${name}"],
+      owner => root, group => root, mode => 0640;
     }
 
   }
