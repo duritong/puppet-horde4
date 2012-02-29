@@ -54,7 +54,7 @@ define horde4::instance(
     run_uid => $name,
     run_gid => $name,
     ssl_mode => 'force',
-    options => 'FileInfo',
+    allow_override => 'FileInfo',
     php_settings => {
       safe_mode               => 'Off',
       register_globals        => 'Off',
@@ -93,16 +93,20 @@ define horde4::instance(
     file{
       "/var/www/vhosts/${name}/pear":
         ensure => directory,
+        seltype => 'httpd_sys_rw_content_t',
         owner => root, group => $name, mode => 0640;
       "/var/www/vhosts/${name}/tmp":
         ensure => directory,
+        seltype => 'httpd_sys_rw_content_t',
         owner => $name, group => $name, mode => 0640;
       "/var/www/vhosts/${name}/pear.conf":
         replace => false,
         content => template('horde4/pear.conf.erb'),
+        seltype => 'httpd_sys_rw_content_t',
         owner => root, group => $name, mode => 0640;
        "/var/www/vhosts/${name}/www/static":
         ensure => directory,
+        seltype => 'httpd_sys_rw_content_t',
         owner => $name, group => $name, mode => 0640;
     }
 
@@ -148,6 +152,7 @@ define horde4::instance(
     file{"/var/www/vhosts/${name}/www/.gitignore":
       content => "*\n!config/*\n!*!*/config/\n",
       replace => false,
+      seltype => 'httpd_sys_rw_content_t',
       require => Exec["init_git_repo_for_horde_${name}"],
       owner => root, group => root, mode => 0640;
     }
