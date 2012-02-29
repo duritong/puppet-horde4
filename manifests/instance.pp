@@ -122,19 +122,19 @@ define horde4::instance(
         creates => "/var/www/vhosts/${name}/www/index.php",
         user => $name,
         notify => Exec["fix_horde_perms_for_${name}"],
-        require => Exec["instal_horde_for_${name}"];
+        require => Exec["install_horde_for_${name}"];
       "install_menmo_for_${name}":
         command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/mnemo",
         creates => "/var/www/vhosts/${name}/www/mnemo/index.php",
         user => $name,
         notify => Exec["fix_horde_perms_for_${name}"],
-        require => Exec["instal_horde_for_${name}"];
+        require => Exec["install_webmail_for_${name}"];
       "install_htpasswd_for_${name}":
         command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/passwd",
         creates => "/var/www/vhosts/${name}/www/passwd/index.php",
         user => $name,
         notify => Exec["fix_horde_perms_for_${name}"],
-        require => Exec["instal_horde_for_${name}"];
+        require => Exec["install_webmail_for_${name}"];
       "fix_horde_perms_for_${name}":
         command => "chown root:${name} /var/www/vhosts/${name}/www/* -R",
         refreshonly => true;
