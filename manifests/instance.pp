@@ -42,9 +42,6 @@ define horde4::instance(
       }
     }
   }
-  $additional_fcgi_options = '    RewriteEngine On
-  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
-'
   apache::vhost::php::standard{$name:
     ensure => $ensure,
     domainalias => $domainalias,
@@ -54,7 +51,7 @@ define horde4::instance(
     run_uid => $name,
     run_gid => $name,
     ssl_mode => 'force',
-    allow_override => 'FileInfo',
+    allow_override => 'FileInfo Limit',
     php_settings => {
       safe_mode               => 'Off',
       register_globals        => 'Off',
@@ -70,6 +67,7 @@ define horde4::instance(
     php_options => { use_pear => true },
     additional_options => "
   RewriteEngine On
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
   RewriteRule ^/Microsoft-Server-ActiveSync /horde/rpc.php [PT,L,QSA]
   SetEnv PHP_PEAR_SYSCONF_DIR /var/www/vhosts/${name}
   <DirectoryMatch \"^/var/www/vhosts/${name}/www/(.*/)?(config|lib|locale|po|scripts|templates)/(.*)?\">
@@ -81,8 +79,7 @@ define horde4::instance(
    Order deny,allow
    Deny  from all
    Allow from localhost
-  </LocationMatch>
-  ${additional_fcgi_options}",
+  </LocationMatch>",
     mod_security => false,
   }
 
