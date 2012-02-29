@@ -48,6 +48,8 @@ define horde4::instance(
     run_mode => 'fcgid',
     owner => root,
     group => $name,
+    documentroot_owner = root,
+    documentroot_group = $name,
     run_uid => $name,
     run_gid => $name,
     ssl_mode => 'force',
@@ -147,7 +149,15 @@ define horde4::instance(
     }
 
     file{"/var/www/vhosts/${name}/www/.gitignore":
-      content => "*\n!config/*\n!*!*/config/\n",
+      content => "*
+!config/
+!config/*
+config/.htaccess
+!*/
+!*/config/
+!*/config/*
+*/config/.htaccess
+",
       replace => false,
       seltype => 'httpd_sys_rw_content_t',
       require => Exec["init_git_repo_for_horde_${name}"],
