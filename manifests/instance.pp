@@ -43,6 +43,8 @@ define horde4::instance(
     ensure => $ensure,
     domainalias => $domainalias,
     run_mode => 'fcgid',
+    owner = root,
+    group = $name,
     run_uid => $name,
     run_gid => $name,
     ssl_mode => 'force',
@@ -61,6 +63,8 @@ define horde4::instance(
     },
     php_options => { use_pear => true },
     additional_options => "
+  RewriteEngine On
+  RewriteRule ^/Microsoft-Server-ActiveSync /horde/rpc.php [PT,L,QSA]
   SetEnv PHP_PEAR_SYSCONF_DIR /var/www/vhosts/${name}
   <DirectoryMatch \"^/var/www/vhosts/${name}/www/(.*/)?(config|lib|locale|po|scripts|templates)/(.*)?\">
     Order deny,allow
@@ -88,6 +92,7 @@ define horde4::instance(
 #      "/var/www/vhosts/${name}/pear.conf":
 #        content => template('horde4/pear.conf.erb'),
 #        owner => root, group => $name, mode => 0640;
+       "/var/www/vhosts/${name}/tmp"
     }
 
 #    exec{
@@ -96,9 +101,11 @@ define horde4::instance(
 #        creates => "/var/www/vhosts/${name}/pear/pear";
 #      "install_horde_for_${name}":
 #        command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde",
-#        creates => "/var/www/vhosts/${name}/index.php",
+#        creates => "/var/www/vhosts/${name}/www/index.php",
+#        notify => Exec["fix_horde_perms_for_${name}"],
 #        require => Exec["instal_pear_for_${name}"];
-#
+#      "fix_horde_perms_for_${name}":
+#        command => "chown root:${name} /var/www/vhosts/${name}/www/* -R",
 #    }
 
   }
