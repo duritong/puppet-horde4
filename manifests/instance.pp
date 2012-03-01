@@ -48,6 +48,8 @@ class horde4::instance(
     ssl_mode => 'force',
     options => '+FollowSymLinks',
     php_settings => {
+      disable_functions       => 'sys_get_temp_dir',
+      'apc.shm_size'          => '512',
       safe_mode               => 'Off',
       register_globals        => 'Off',
       magic_quotes_runtime    => 'Off',
@@ -61,6 +63,13 @@ class horde4::instance(
     },
     php_options => { use_pear => true },
     additional_options => "
+ ExpiresActive On
+  ExpiresByType image/png 'now plus 1 week'
+  ExpiresByType image/gif 'now plus 1 week'
+  ExpiresByType text/javascript 'now plus 1 week'
+  ExpiresByType application/x-javascript 'now plus 1 week'
+  ExpiresByType text/css 'now plus 1 week'
+
   SetEnv PHP_PEAR_SYSCONF_DIR /var/www/vhosts/${name}
   <DirectoryMatch \"^/var/www/vhosts/${name}/www/(.*/)?(config|lib|locale|po|scripts|templates)/(.*)?\">
     Order deny,allow
