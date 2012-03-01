@@ -1,9 +1,9 @@
-class horde4::instance(
+define horde4::instance(
+  $ensure = 'present',
   $domainalias = 'absent',
   $run_uid,
   $run_gid,
   $wwwmail = false
-
 ){
 
   user::managed{$name:
@@ -23,6 +23,12 @@ class horde4::instance(
     before => Apache::Vhost::Php::Standard[$name],
   }
 
+  user::groups::manage_user{"apache_in_${name}":
+    ensure => $ensure,
+    group => $name,
+    user => 'apache'
+  }
+
   if $wwwmail {
     user::groups::manage_user{"${name}_in_wwwmailers":
       ensure => $ensure,
@@ -36,17 +42,18 @@ class horde4::instance(
       }
     }
   }
-  $additional_fcgi_options = '    RewriteEngine On
-  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
-'
   apache::vhost::php::standard{$name:
     ensure => $ensure,
     domainalias => $domainalias,
     run_mode => 'fcgid',
+    owner => root,
+    group => $name,
+    documentroot_owner = root,
+    documentroot_group = $name,
     run_uid => $name,
     run_gid => $name,
     ssl_mode => 'force',
-    options => '+FollowSymLinks',
+    allow_override => 'FileInfo Limit',
     php_settings => {
       disable_functions       => 'sys_get_temp_dir',
       'apc.shm_size'          => '512',
@@ -69,7 +76,9 @@ class horde4::instance(
   ExpiresByType text/javascript 'now plus 1 week'
   ExpiresByType application/x-javascript 'now plus 1 week'
   ExpiresByType text/css 'now plus 1 week'
-
+ RewriteEngine On
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
+  RewriteRule ^/Microsoft-Server-ActiveSync /horde/rpc.php [PT,L,QSA]
   SetEnv PHP_PEAR_SYSCONF_DIR /var/www/vhosts/${name}
   <DirectoryMatch \"^/var/www/vhosts/${name}/www/(.*/)?(config|lib|locale|po|scripts|templates)/(.*)?\">
     Order deny,allow
@@ -80,22 +89,92 @@ class horde4::instance(
    Order deny,allow
    Deny  from all
    Allow from localhost
-  </LocationMatch>
-  ${additional_fcgi_options}",
+  </LocationMatch>",
     mod_security => false,
   }
 
   if $ensure == 'present' {
     require horde4::base
+    require git
+
     file{
       "/var/www/vhosts/${name}/pear":
         ensure => directory,
+        seltype => 'httpd_sys_rw_content_t',
         owner => root, group => $name, mode => 0640;
       "/var/www/vhosts/${name}/tmp":
         ensure => directory,
+        seltype => 'httpd_sys_rw_content_t',
+        owner => $name, group => $name, mode => 0640;
+      "/var/www/vhosts/${name}/pear.conf":
+        replace => false,
+        content => template('horde4/pear.conf.erb'),
+        seltype => 'httpd_sys_rw_content_t',
+        owner => root, group => $name, mode => 0640;
+       "/var/www/vhosts/${name}/www/static":
+        ensure => directory,
+        seltype => 'httpd_sys_rw_content_t',
         owner => $name, group => $name, mode => 0640;
     }
+
+    exec{
+      "instal_pear_for_${name}":
+        command => "pear -c /var/www/vhosts/${name}/pear.conf install pear",
+        user => $name,
+        creates => "/var/www/vhosts/${name}/pear/pear";
+      "install_horde_for_${name}":
+        command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde",
+        creates => "/var/www/vhosts/${name}/www/index.php",
+        notify => Exec["fix_horde_perms_for_${name}"],
+        user => $name,
+        require => Exec["instal_pear_for_${name}"];
+      "install_webmail_for_${name}":
+        command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/webmail",
+        creates => "/var/www/vhosts/${name}/www/index.php",
+        user => $name,
+        notify => Exec["fix_horde_perms_for_${name}"],
+        require => Exec["install_horde_for_${name}"];
+      "install_menmo_for_${name}":
+        command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/mnemo",
+        creates => "/var/www/vhosts/${name}/www/mnemo/index.php",
+        user => $name,
+        notify => Exec["fix_horde_perms_for_${name}"],
+        require => Exec["install_webmail_for_${name}"];
+      "install_htpasswd_for_${name}":
+        command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/passwd",
+        creates => "/var/www/vhosts/${name}/www/passwd/index.php",
+        user => $name,
+        notify => Exec["fix_horde_perms_for_${name}"],
+        require => Exec["install_webmail_for_${name}"];
+      "fix_horde_perms_for_${name}":
+        command => "chown root:${name} /var/www/vhosts/${name}/www/* -R",
+        refreshonly => true;
+      "init_git_repo_for_horde_${name}":
+        command => "git init",
+        creates => "/var/www/vhosts/${name}/www/.git",
+        cwd => "/var/www/vhosts/${name}/www",
+        require => Exec["fix_horde_perms_for_${name}"];
+    }
+
+    file{"/var/www/vhosts/${name}/www/.gitignore":
+      content => "*
+!config/
+!config/*
+config/.htaccess
+!*/
+!*/config/
+!*/config/*
+*/config/.htaccess
+",
+      replace => false,
+      seltype => 'httpd_sys_rw_content_t',
+      require => Exec["init_git_repo_for_horde_${name}"],
+      owner => root, group => root, mode => 0640;
+    }
+
   }
+
+
 
 /*
   if hiera('use_nagios',false) {

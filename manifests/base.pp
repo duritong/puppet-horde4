@@ -10,7 +10,16 @@ class horde4::base{
   include php::packages::cache
   include php::packages::intl
   include php::packages::gettext
-  include php::extensions::pecl::fileinfo
   include aspell
+
+  include php::packages::idn
+  include php::packages::mail_mimedecode
+  include gpg
+
+  if $use_shorewall {
+    include shorewall::rules::out::keyserver
+    include shorewall::rules::out::imap
+    include shorewall::rules::out::pop3
+  }
 
 }
