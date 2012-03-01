@@ -56,7 +56,7 @@ define horde4::instance(
     allow_override => 'FileInfo Limit',
     php_settings => {
       disable_functions       => 'sys_get_temp_dir',
-      'apc.shm_size'          => '512',
+      'apc.shm_size'          => '512M',
       safe_mode               => 'Off',
       register_globals        => 'Off',
       magic_quotes_runtime    => 'Off',
@@ -70,16 +70,20 @@ define horde4::instance(
     },
     php_options => { use_pear => true },
     additional_options => "
- ExpiresActive On
+
+  ExpiresActive On
   ExpiresByType image/png 'now plus 1 week'
   ExpiresByType image/gif 'now plus 1 week'
   ExpiresByType text/javascript 'now plus 1 week'
   ExpiresByType application/x-javascript 'now plus 1 week'
   ExpiresByType text/css 'now plus 1 week'
- RewriteEngine On
+
+  RewriteEngine On
   RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
   RewriteRule ^/Microsoft-Server-ActiveSync /horde/rpc.php [PT,L,QSA]
+
   SetEnv PHP_PEAR_SYSCONF_DIR /var/www/vhosts/${name}
+
   <DirectoryMatch \"^/var/www/vhosts/${name}/www/(.*/)?(config|lib|locale|po|scripts|templates)/(.*)?\">
     Order deny,allow
     Deny  from all
