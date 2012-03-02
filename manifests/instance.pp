@@ -66,7 +66,7 @@ define horde4::instance(
       display_errors          => 'Off',
       register_globals        => 'Off',
       include_path            => "/var/www/vhosts/${name}/pear/php",
-      open_basedir            => "/var/www/vhosts/${name}/www/:/var/www/vhosts/${name}/pear:/var/www/upload_tmp_dir/${name}/:/var/www/session.save_path/${name}/:/var/www/vhosts/${name}/logs/:/var/www/vhosts/${name}/tmp/",
+      open_basedir            => "/var/www/vhosts/${name}/www/:/var/www/vhosts/${name}/pear:/var/www/upload_tmp_dir/${name}/:/var/www/session.save_path/${name}/:/var/www/vhosts/${name}/logs/:/var/www/vhosts/${name}/tmp/:/etc/resolv.conf:/.pearrc",
     },
     php_options => { use_pear => true },
     additional_options => "
@@ -80,7 +80,7 @@ define horde4::instance(
 
   RewriteEngine On
   RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
-  RewriteRule ^/Microsoft-Server-ActiveSync /horde/rpc.php [PT,L,QSA]
+  RewriteRule ^/Microsoft-Server-ActiveSync /rpc.php [PT,L,QSA]
 
   SetEnv PHP_PEAR_SYSCONF_DIR /var/www/vhosts/${name}
 
