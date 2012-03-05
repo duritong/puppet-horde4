@@ -83,6 +83,7 @@ define horde4::instance(
   RewriteRule ^/Microsoft-Server-ActiveSync /rpc.php [PT,L,QSA]
 
   SetEnv PHP_PEAR_SYSCONF_DIR /var/www/vhosts/${name}
+  SetEnv TMPDIR /var/www/vhosts/${name}/tmp
 
   <DirectoryMatch \"^/var/www/vhosts/${name}/www/(.*/)?(config|lib|locale|po|scripts|templates)/(.*)?\">
     Order deny,allow
