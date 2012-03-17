@@ -3,7 +3,8 @@ define horde4::instance(
   $domainalias = 'absent',
   $run_uid,
   $run_gid,
-  $wwwmail = false
+  $wwwmail = false,
+  $alarm_cron = true
 ){
 
   user::managed{$name:
@@ -98,10 +99,20 @@ define horde4::instance(
     mod_security => false,
   }
 
+  file{
+    "/etc/cron.d/${name}_horde_alarm":;
+    "/etc/cron.d/${name}_horde_tmp_cleanup":
+      ensure => $ensure;
+  }
+  if (!$alarm_cron and $ensure == 'present') or ($ensure != 'present') {
+    File["/etc/cron.d/${name}_horde_alarm"]{
+      ensure => absent,
+    }
+  }
+
   if $ensure == 'present' {
     require horde4::base
     require git
-
     file{
       "/var/www/vhosts/${name}/pear":
         ensure => directory,
@@ -125,34 +136,34 @@ define horde4::instance(
     exec{
       "instal_pear_for_${name}":
         command => "pear -c /var/www/vhosts/${name}/pear.conf install pear",
-        user => $name,
+        group => $name,
         creates => "/var/www/vhosts/${name}/pear/pear";
       "install_horde_for_${name}":
         command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde",
         creates => "/var/www/vhosts/${name}/www/index.php",
         notify => Exec["fix_horde_perms_for_${name}"],
-        user => $name,
+        group => $name,
         require => Exec["instal_pear_for_${name}"];
       "install_webmail_for_${name}":
         command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/webmail",
         creates => "/var/www/vhosts/${name}/www/index.php",
-        user => $name,
+        group => $name,
         notify => Exec["fix_horde_perms_for_${name}"],
         require => Exec["install_horde_for_${name}"];
       "install_menmo_for_${name}":
         command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/mnemo",
         creates => "/var/www/vhosts/${name}/www/mnemo/index.php",
-        user => $name,
+        group => $name,
         notify => Exec["fix_horde_perms_for_${name}"],
         require => Exec["install_webmail_for_${name}"];
-      "install_htpasswd_for_${name}":
+      "install_passwd_for_${name}":
         command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/passwd",
         creates => "/var/www/vhosts/${name}/www/passwd/index.php",
-        user => $name,
+        group => $name,
         notify => Exec["fix_horde_perms_for_${name}"],
         require => Exec["install_webmail_for_${name}"];
       "fix_horde_perms_for_${name}":
-        command => "chown root:${name} /var/www/vhosts/${name}/www/* -R",
+        command => "chown root:${name} /var/www/vhosts/${name}/www/* /var/www/vhosts/${name}/pear/* -R",
         refreshonly => true;
       "init_git_repo_for_horde_${name}":
         command => "git init",
@@ -177,8 +188,17 @@ config/.htaccess
       owner => root, group => root, mode => 0640;
     }
 
-  }
+    File["/etc/cron.d/${name}_tmp_cleanup"]{
+      content => "1 * * * * ${name} tmpwatch 12h /var/www/vhosts/${name}/tmp\n",
+    }
 
+    if $alarm_cron {
+      File["/etc/cron.d/${name}_horde_alarm"]{
+        content => "*/5 * * * * ${name} /var/www/vhosts/${name}/pear/horde-alarms\n",
+        require => Exec["install_webmail_for_${name}"]
+      }
+    }
+  }
 
 
 /*
