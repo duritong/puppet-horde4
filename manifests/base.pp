@@ -1,4 +1,6 @@
-class horde4::base{
+class horde4::base(
+  $manage_sieve = hiera('horde4_manage_sieve',true)
+){
 
   include php::extensions::common
   include php::extensions::crypt_blowfish
@@ -16,10 +18,16 @@ class horde4::base{
   include php::packages::mail_mimedecode
   include gpg
 
-  if $use_shorewall {
+  if $horde4::base::manage_sieve {
+    include php::packages::net_sieve
+  }
+
+  if hiera('use_shorewall',false) {
     include shorewall::rules::out::keyserver
     include shorewall::rules::out::imap
     include shorewall::rules::out::pop3
+    if $horde4::base::manage_sieve {
+      include shorewall::rules::out::managesieve
+    }
   }
-
 }
