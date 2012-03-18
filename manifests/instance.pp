@@ -63,6 +63,7 @@ define horde4::instance(
       magic_quotes_runtime    => 'Off',
       'session.use_trans_sid' => 'Off',
       'session.auto_start'    => 'Off',
+      'session.gc_divisor'    => 10000,
       file_uploads            => 'On',
       display_errors          => 'Off',
       register_globals        => 'Off',
