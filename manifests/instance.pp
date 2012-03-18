@@ -188,7 +188,7 @@ config/.htaccess
       owner => root, group => root, mode => 0640;
     }
 
-    File["/etc/cron.d/${name}_tmp_cleanup"]{
+    File["/etc/cron.d/${name}_horde_tmp_cleanup"]{
       content => "1 * * * * ${name} tmpwatch 12h /var/www/vhosts/${name}/tmp\n",
     }
 
