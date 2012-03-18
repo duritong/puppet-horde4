@@ -194,7 +194,7 @@ config/.htaccess
 
     if $alarm_cron {
       File["/etc/cron.d/${name}_horde_alarm"]{
-        content => "*/5 * * * * ${name} /var/www/vhosts/${name}/pear/horde-alarms\n",
+        content => "*/5 * * * * ${name} PHP_PEAR_SYSCONF_DIR=/var/www/vhosts/${name}/ php -d include_path='/var/www/vhosts/${name}/pear/php:/var/www/vhosts/${name}/www' -d error_log='/var/www/vhosts/${name}/logs/php_error_log' -d safe_mode='off' /var/www/vhosts/${name}/pear/horde-alarms\n",
         require => Exec["install_webmail_for_${name}"]
       }
     }
