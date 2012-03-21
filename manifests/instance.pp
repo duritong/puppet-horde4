@@ -4,7 +4,12 @@ define horde4::instance(
   $run_uid,
   $run_gid,
   $wwwmail = false,
-  $alarm_cron = true
+  $alarm_cron = true,
+  $install_libs = {
+    'webdav_server' => true,
+    'date_holidays' => true,
+    'imagick'       => true
+  }
 ){
 
   user::managed{$name:
@@ -199,6 +204,35 @@ config/.htaccess
         require => Exec["install_webmail_for_${name}"]
       }
     }
+  }
+
+  # install additional libs
+  $std_install_libs = {
+    'webdav_server' => true,
+    'date_holidays' => true,
+    'imagick'       => true
+  }
+  $real_install_libs = merge($std_install_libs,$install_libs)
+  Exec{
+    require => Exec["install_webmail_for_${name}"],
+    notify => Exec["fix_horde_perms_for_${name}"],
+  }
+  if $real_install_libs['webdav_server'] {
+    exec{
+      "install_webdav_server_${name}":
+        command => "pear -c /var/www/vhosts/${name}/pear.conf install HTTP_WebDAV_Server-beta",
+        creates => "/var/www/vhosts/${name}/pear/php/HTTP/WebDAV/Server.php";
+    }
+  }
+  if $real_install_libs['date_holidays'] {
+    exec{
+      "install_date_holiday_${name}":
+        command => "pear -c /var/www/vhosts/${name}/pear.conf install Date_Holidays-alpha#all",
+        creates => "/var/www/vhosts/${name}/pear/php/Date/Holidays.php";
+    }
+  }
+  if $real_install_libs['imagick'] {
+    include php::packages::imagick
   }
 
 
