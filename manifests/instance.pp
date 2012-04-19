@@ -86,8 +86,8 @@ define horde4::instance(
   ExpiresByType text/css 'now plus 1 week'
 
   RewriteEngine On
-  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
-  RewriteRule ^/Microsoft-Server-ActiveSync /rpc.php [PT,L,QSA]
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+  RewriteRule ^/Microsoft-Server-ActiveSync /rpc.php [PT,QSA]
 
   SetEnv PHP_PEAR_SYSCONF_DIR /var/www/vhosts/${name}
   SetEnv TMPDIR /var/www/vhosts/${name}/tmp
