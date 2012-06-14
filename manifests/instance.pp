@@ -9,7 +9,10 @@ define horde4::instance(
     'webdav_server' => true,
     'date_holidays' => true,
     'imagick'       => true
-  }
+  },
+  $manage_sieve = true,
+  $manage_shorewall = false,
+  $manage_nagios = false
 ){
 
   user::managed{$name:
@@ -117,9 +120,10 @@ define horde4::instance(
   }
 
   if $ensure == 'present' {
-    require horde4::base
-    require git
-    file{
+    class{'horde4::base':
+      manage_shorewall => $manage_shorewall,
+      manage_sieve => $manage_sieve
+    } -> class{'git': } -> file{
       "/var/www/vhosts/${name}/pear":
         ensure => directory,
         seltype => 'httpd_sys_rw_content_t',
@@ -238,18 +242,16 @@ config/.htaccess
 
 
 /*
-  if hiera('use_nagios',false) {
+  if $manage_nagios {
     $real_monitor_url = $monitor_url ? {
       'absent' => $name,
       default => $monitor_url,
     }
-    nagios::service::http{"${real_monitor_url}":
+    nagios::service::http{$real_monitor_url:
       ensure => $ensure,
       check_url => '/imp/login.php',
       ssl_mode => $ssl_mode,
-      check_code => $horde::install_type ? {
-        'git4' => '301',
-        default => 'OK',
+      check_code => '301',
       }
     }
   }

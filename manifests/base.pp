@@ -1,5 +1,6 @@
 class horde4::base(
-  $manage_sieve = hiera('horde4_manage_sieve',true)
+  $manage_sieve = true,
+  $manage_shorewall = false
 ){
 
   include php::extensions::common
@@ -22,7 +23,7 @@ class horde4::base(
     include php::packages::net_sieve
   }
 
-  if hiera('use_shorewall',false) {
+  if $manage_shorewall {
     include shorewall::rules::out::keyserver
     include shorewall::rules::out::imap
     include shorewall::rules::out::pop3
