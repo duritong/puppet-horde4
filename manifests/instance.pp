@@ -123,7 +123,10 @@ define horde4::instance(
     class{'horde4::base':
       manage_shorewall => $manage_shorewall,
       manage_sieve => $manage_sieve
-    } -> class{'git': } -> file{
+    }
+    require git
+    Class['horde4::base'] -> Class['git']
+    file{
       "/var/www/vhosts/${name}/pear":
         ensure => directory,
         seltype => 'httpd_sys_rw_content_t',
