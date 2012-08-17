@@ -178,27 +178,13 @@ define horde4::instance(
       "fix_horde_perms_for_${name}":
         command => "chown root:${name} /var/www/vhosts/${name}/www/* /var/www/vhosts/${name}/pear/* -R",
         refreshonly => true;
-      "init_git_repo_for_horde_${name}":
-        command => "git init",
-        creates => "/var/www/vhosts/${name}/www/.git",
-        cwd => "/var/www/vhosts/${name}/www",
-        require => Exec["fix_horde_perms_for_${name}"];
     }
 
-    file{"/var/www/vhosts/${name}/www/.gitignore":
-      content => "*
-!config/
-!config/*
-config/.htaccess
-!*/
-!*/config/
-!*/config/*
-*/config/.htaccess
-",
-      replace => false,
-      seltype => 'httpd_sys_rw_content_t',
-      require => Exec["init_git_repo_for_horde_${name}"],
-      owner => root, group => root, mode => 0640;
+    file{'/var/www/vhosts/${name}/www':
+      ensure => directory,
+      source => 'puppet:///modules/site_horde4/config',
+      recurse => true,
+      force => true,
     }
 
     File["/etc/cron.d/${name}_horde_tmp_cleanup"]{
