@@ -187,6 +187,7 @@ define horde4::instance(
       source => 'puppet:///modules/site_horde4/config',
       recurse => true,
       force => true,
+      selinux_ignore_defaults => false,
       require => Exec["install_passwd_for_${name}"];
     }
     
