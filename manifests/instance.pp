@@ -148,7 +148,7 @@ define horde4::instance(
     }
 
     exec{
-      "instal_pear_for_${name}":
+      "install_pear_for_${name}":
         command => "pear -c /var/www/vhosts/${name}/pear.conf install pear",
         group => $name,
         creates => "/var/www/vhosts/${name}/pear/pear",
@@ -158,10 +158,10 @@ define horde4::instance(
         creates => "/var/www/vhosts/${name}/www/index.php",
         notify => Exec["fix_horde_perms_for_${name}"],
         group => $name,
-        require => Exec["instal_pear_for_${name}"];
+        require => Exec["install_pear_for_${name}"];
       "install_webmail_for_${name}":
         command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/webmail",
-        creates => "/var/www/vhosts/${name}/www/index.php",
+        creates => "/var/www/vhosts/${name}/www/imp/index.php",
         group => $name,
         notify => Exec["fix_horde_perms_for_${name}"],
         require => Exec["install_horde_for_${name}"];
