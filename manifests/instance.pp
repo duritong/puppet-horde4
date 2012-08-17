@@ -185,6 +185,7 @@ define horde4::instance(
     file{"/var/www/vhosts/${name}/www":
       ensure => directory,
       source => 'puppet:///modules/site_horde4/config',
+      owner => $name, group => $name, mode => 0400,
       recurse => true,
       force => true,
       selinux_ignore_defaults => false,
