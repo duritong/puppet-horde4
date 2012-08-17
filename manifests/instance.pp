@@ -185,7 +185,7 @@ define horde4::instance(
     file{"/var/www/vhosts/${name}/www":
       ensure => directory,
       source => 'puppet:///modules/site_horde4/config',
-      owner => $name, group => $name, mode => 0400,
+      owner => 'root', group => $name, mode => 0440,
       recurse => remote,
       force => true,
       require => Exec["install_passwd_for_${name}"];
