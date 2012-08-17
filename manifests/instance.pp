@@ -151,7 +151,8 @@ define horde4::instance(
       "instal_pear_for_${name}":
         command => "pear -c /var/www/vhosts/${name}/pear.conf install pear",
         group => $name,
-        creates => "/var/www/vhosts/${name}/pear/pear";
+        creates => "/var/www/vhosts/${name}/pear/pear",
+        require => File["/var/www/vhosts/${name}/pear.conf"];
       "install_horde_for_${name}":
         command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde",
         creates => "/var/www/vhosts/${name}/www/index.php",
