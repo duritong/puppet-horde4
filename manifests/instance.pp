@@ -59,6 +59,7 @@ define horde4::instance(
     group => $name,
     documentroot_owner => root,
     documentroot_group => $name,
+    manage_docroot => false,
     run_uid => $name,
     run_gid => $name,
     ssl_mode => 'force',
@@ -180,13 +181,14 @@ define horde4::instance(
         refreshonly => true;
     }
 
-    file{'/var/www/vhosts/${name}/www':
+    file{"/var/www/vhosts/${name}/www":
       ensure => directory,
       source => 'puppet:///modules/site_horde4/config',
       recurse => true,
       force => true,
+      require => Exec["install_passwd_for_${name}"];
     }
-
+    
     File["/etc/cron.d/${name}_horde_tmp_cleanup"]{
       content => "1 * * * * ${name} tmpwatch 12h /var/www/vhosts/${name}/tmp\n",
     }
