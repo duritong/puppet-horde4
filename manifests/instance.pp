@@ -191,7 +191,7 @@ define horde4::instance(
         require => Exec["install_webmail_for_${name}"];
       "fix_horde_perms_for_${name}":
         command => "chown root:${name} /var/www/vhosts/${name}/www/* /var/www/vhosts/${name}/pear/* -R",
-        before => File["/var/www/vhosts/${name}/static","/var/www/vhosts/${name}/tmp"],
+        before => File["/var/www/vhosts/${name}/www/static","/var/www/vhosts/${name}/tmp"],
         refreshonly => true;
     }
 
