@@ -198,7 +198,7 @@ define horde4::instance(
 
     file{"/var/www/vhosts/${name}/www":
       ensure => directory,
-      source => 'puppet:///modules/site_horde4/config',
+      source => "puppet:///modules/site_horde4/${name}/config",
       owner => 'root', group => $name, mode => 0440,
       recurse => remote,
       force => true,
