@@ -167,9 +167,10 @@ define horde4::instance(
         require => File["/var/www/vhosts/${name}/pear.conf"];
       "install_horde_for_${name}":
         command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf channel-discover pear.horde.org && /var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install horde/horde_role && /var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde",
+        timeout => 1000,
         creates => "/var/www/vhosts/${name}/www/index.php",
-        notify => Exec["fix_horde_perms_for_${name}"],
-        group => $name,
+        notify  => Exec["fix_horde_perms_for_${name}"],
+        group   => $name,
         require => Exec["install_pear_for_${name}"];
       "install_webmail_for_${name}":
         command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/webmail",
