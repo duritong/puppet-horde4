@@ -121,10 +121,22 @@ define horde4::instance(
   }
 
   if $ensure == 'present' {
-    class{'horde4::base':
-      manage_shorewall => $manage_shorewall,
-      manage_sieve => $manage_sieve
+
+    include horde4::base
+
+    if $manage_sieve {
+      include php::packages::net_sieve
     }
+
+    if $manage_shorewall {
+      include shorewall::rules::out::keyserver
+      include shorewall::rules::out::imap
+      include shorewall::rules::out::pop3
+      if $manage_sieve {
+        include shorewall::rules::out::managesieve
+      }
+    }
+
     require git
     Class['horde4::base'] -> Class['git']
     file{

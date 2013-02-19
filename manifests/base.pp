@@ -1,7 +1,4 @@
-class horde4::base(
-  $manage_sieve = true,
-  $manage_shorewall = false
-){
+class horde4::base {
 
   include php::extensions::common
   include php::extensions::crypt_blowfish
@@ -19,16 +16,4 @@ class horde4::base(
   include php::packages::mail_mimedecode
   include gpg
 
-  if $horde4::base::manage_sieve {
-    include php::packages::net_sieve
-  }
-
-  if $manage_shorewall {
-    include shorewall::rules::out::keyserver
-    include shorewall::rules::out::imap
-    include shorewall::rules::out::pop3
-    if $horde4::base::manage_sieve {
-      include shorewall::rules::out::managesieve
-    }
-  }
 }
