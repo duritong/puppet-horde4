@@ -93,6 +93,8 @@ define horde4::instance(
   RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
   RewriteRule ^/Microsoft-Server-ActiveSync /rpc.php [PT,QSA]
 
+  Alias /autodiscover/autodiscover.xml /var/www/vhosts/${name}/www/rpc.php
+
   SetEnv PHP_PEAR_SYSCONF_DIR /var/www/vhosts/${name}
   SetEnv TMPDIR /var/www/vhosts/${name}/tmp
 
