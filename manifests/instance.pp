@@ -208,7 +208,7 @@ define horde4::instance(
     }
     
     File["/etc/cron.d/${name}_horde_tmp_cleanup"]{
-      content => "1 * * * * ${name} tmpwatch 12h /var/www/vhosts/${name}/tmp\n",
+      content => "1 * * * * ${name} tmpwatch 12h /var/www/vhosts/${name}/tmp; tmpwatch 12h /var/www/upload_tmp_dir/${name}\n",
     }
 
     if $alarm_cron {
