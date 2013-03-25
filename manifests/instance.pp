@@ -190,8 +190,14 @@ define horde4::instance(
         command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/passwd",
         creates => "/var/www/vhosts/${name}/www/passwd/index.php",
         group => $name,
-        notify => Exec["fix_horde_perms_for_${name}"],
+        notify => Exec["install_autoloader_for_${name}"],
         require => Exec["install_webmail_for_${name}"];
+      "install_autoloader_for_${name}":
+        command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde_autoloader_cache",
+        creates => "/var/www/vhosts/${name}/pear/horde-autoloader-cache-prune",
+        group => $name,
+        notify => Exec["fix_horde_perms_for_${name}"],
+        require => Exec["install_passwd_for_${name}"];
       "fix_horde_perms_for_${name}":
         command => "chown root:${name} /var/www/vhosts/${name}/www/* /var/www/vhosts/${name}/pear/* -R",
         before => File["/var/www/vhosts/${name}/www/static","/var/www/vhosts/${name}/tmp"],
