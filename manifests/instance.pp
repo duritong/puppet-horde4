@@ -5,6 +5,7 @@ define horde4::instance(
   $run_gid,
   $wwwmail = false,
   $alarm_cron = true,
+  $upgrade_mode = false,
   $install_libs = {
     'webdav_server' => true,
     'date_holidays' => true,
@@ -204,15 +205,31 @@ define horde4::instance(
         refreshonly => true;
     }
 
-    file{"/var/www/vhosts/${name}/www":
-      ensure => directory,
-      source => "puppet:///modules/site_horde4/${name}/config",
-      owner => 'root', group => $name, mode => 0440,
-      recurse => remote,
-      force => true,
-      require => Exec["install_passwd_for_${name}"];
+    if $upgrade_mode {
+      file{"/var/www/vhosts/${name}/www/config/conf.php":
+        source  => ["puppet:///modules/horde4/upgrade-conf.php",
+                    "puppet:///modules/site_horde4/upgrade-conf.php"],
+        owner   => 'root', group => $name, mode => 0440,
+        require => Exec["install_passwd_for_${name}"];
+      }
+    } else {
+      file{"/var/www/vhosts/${name}/www":
+        ensure  => directory,
+        source  => "puppet:///modules/site_horde4/${name}/config",
+        owner   => 'root', group => $name, mode => 0440,
+        recurse => remote,
+        force   => true,
+        require => Exec["install_passwd_for_${name}"];
+      }
     }
-    
+
+    file{"/var/www/vhosts/${name}/www/config/registry.d/upgrade-mode.php":
+      ensure => $upgrade_mode ? { true => present, false => absent },
+      source => ["puppet:///modules/horde4/upgrade-registry.php",
+                 "puppet:///modules/site_horde4/upgrade-registry.php"],
+      owner => 'root', group => $name, mode => 0440;
+    }
+
     File["/etc/cron.d/${name}_horde_tmp_cleanup"]{
       content => "1 * * * * ${name} tmpwatch 12h /var/www/vhosts/${name}/tmp; tmpwatch 12h /var/www/upload_tmp_dir/${name}\n",
     }
