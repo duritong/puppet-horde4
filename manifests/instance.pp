@@ -207,8 +207,7 @@ define horde4::instance(
 
     if $upgrade_mode {
       file{"/var/www/vhosts/${name}/www/config/conf.php":
-        source  => ["puppet:///modules/site_horde4/upgrade-conf.php",
-                    "puppet:///modules/horde4/upgrade-conf.php"],
+        source  => "puppet:///modules/site_horde4/upgrade-conf.php",
         owner   => 'root', group => $name, mode => 0440,
         require => Exec["install_passwd_for_${name}"];
       }
