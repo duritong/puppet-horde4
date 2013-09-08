@@ -116,6 +116,8 @@ define horde4::instance(
     "/etc/cron.d/${name}_horde_alarm":;
     "/etc/cron.d/${name}_horde_tmp_cleanup":
       ensure => $ensure;
+    "/etc/cron.d/${name}_horde_session_cleanup":
+      ensure => $ensure;
   }
   if (!$alarm_cron and $ensure == 'present') or ($ensure != 'present') {
     File["/etc/cron.d/${name}_horde_alarm"]{
@@ -231,6 +233,11 @@ define horde4::instance(
 
     File["/etc/cron.d/${name}_horde_tmp_cleanup"]{
       content => "1 * * * * ${name} tmpwatch 12h /var/www/vhosts/${name}/tmp; tmpwatch 12h /var/www/upload_tmp_dir/${name}\n",
+    }
+
+    # Poor mans session timeout
+    File["/etc/cron.d/${name}_horde_session_cleanup"]{
+      content => "*/15 * * * * ${name} tmpwatch 40m /var/www/session.save_path/${name}\n",
     }
 
     if $alarm_cron {
