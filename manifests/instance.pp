@@ -207,8 +207,8 @@ define horde4::instance(
 
     if $upgrade_mode {
       file{"/var/www/vhosts/${name}/www/config/conf.php":
-        source  => ["puppet:///modules/horde4/upgrade-conf.php",
-                    "puppet:///modules/site_horde4/upgrade-conf.php"],
+        source  => ["puppet:///modules/site_horde4/upgrade-conf.php",
+                    "puppet:///modules/horde4/upgrade-conf.php"],
         owner   => 'root', group => $name, mode => 0440,
         require => Exec["install_passwd_for_${name}"];
       }
@@ -225,8 +225,8 @@ define horde4::instance(
 
     file{"/var/www/vhosts/${name}/www/config/registry.d/upgrade-mode.php":
       ensure => $upgrade_mode ? { true => present, false => absent },
-      source => ["puppet:///modules/horde4/upgrade-registry.php",
-                 "puppet:///modules/site_horde4/upgrade-registry.php"],
+      source => ["puppet:///modules/site_horde4/upgrade-registry.php",
+                 "puppet:///modules/horde4/upgrade-registry.php"],
       owner => 'root', group => $name, mode => 0440;
     }
 
