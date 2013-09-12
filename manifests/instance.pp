@@ -66,7 +66,7 @@ define horde4::instance(
     ssl_mode => 'force',
     allow_override => 'FileInfo Limit',
     php_settings => {
-      php_tmp_dir             => '/var/www/vhosts/${name}/www/tmp/',
+      php_tmp_dir             => "/var/www/vhosts/${name}/www/tmp/",
       'apc.shm_size'          => '512M',
       safe_mode               => 'Off',
       register_globals        => 'Off',
