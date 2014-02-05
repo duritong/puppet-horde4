@@ -1,49 +1,53 @@
+# an instance of horde
+# creates a complete horde installation
 define horde4::instance(
-  $ensure = 'present',
-  $domainalias = 'absent',
   $run_uid,
   $run_gid,
-  $wwwmail = false,
-  $alarm_cron = true,
-  $upgrade_mode = false,
-  $install_libs = {
+  $ensure           = 'present',
+  $domainalias      = 'absent',
+  $wwwmail          = false,
+  $alarm_cron       = true,
+  $upgrade_mode     = false,
+  $install_libs     = {
     'webdav_server' => true,
     'date_holidays' => true,
     'imagick'       => true
   },
-  $manage_sieve = true,
+  $manage_sieve     = true,
   $manage_shorewall = false,
-  $manage_nagios = false
+  $manage_nagios    = false
 ){
 
+  $user_shell = $::operatingsystem ? {
+    debian  => '/usr/sbin/nologin',
+    ubuntu  => '/usr/sbin/nologin',
+    default => '/sbin/nologin'
+  }
+  $user_homedir = $::operatingsystem ? {
+    openbsd => "/var/www/htdocs/${name}",
+    default => "/var/www/vhosts/${name}"
+  }
   user::managed{$name:
-    ensure => $ensure,
-    uid => $run_uid,
-    gid => $run_gid,
-    shell => $::operatingsystem ? {
-      debian => '/usr/sbin/nologin',
-      ubuntu => '/usr/sbin/nologin',
-      default => '/sbin/nologin'
-    },
-    managehome => false,
-    homedir => $::operatingsystem ? {
-      openbsd => "/var/www/htdocs/${name}",
-      default => "/var/www/vhosts/${name}"
-    },
-    before => Apache::Vhost::Php::Standard[$name],
+    ensure      => $ensure,
+    uid         => $run_uid,
+    gid         => $run_gid,
+    shell       => $user_shell,
+    managehome  => false,
+    homedir     => $user_homedir,
+    before      => Apache::Vhost::Php::Standard[$name],
   }
 
   user::groups::manage_user{"apache_in_${name}":
-    ensure => $ensure,
-    group => $name,
-    user => 'apache'
+    ensure  => $ensure,
+    group   => $name,
+    user    => 'apache'
   }
 
   if $wwwmail {
     user::groups::manage_user{"${name}_in_wwwmailers":
-      ensure => $ensure,
-      group => 'wwwmailers',
-      user => $name
+      ensure  => $ensure,
+      group   => 'wwwmailers',
+      user    => $name
     }
     if ($ensure == 'present') {
       require webhosting::wwwmailers
@@ -53,19 +57,19 @@ define horde4::instance(
     }
   }
   apache::vhost::php::standard{$name:
-    ensure => $ensure,
-    domainalias => $domainalias,
-    run_mode => 'fcgid',
-    owner => root,
-    group => $name,
-    documentroot_owner => root,
-    documentroot_group => $name,
-    manage_docroot => false,
-    run_uid => $name,
-    run_gid => $name,
-    ssl_mode => 'force',
-    allow_override => 'FileInfo Limit',
-    php_settings => {
+    ensure              => $ensure,
+    domainalias         => $domainalias,
+    run_mode            => 'fcgid',
+    owner               => root,
+    group               => $name,
+    documentroot_owner  => root,
+    documentroot_group  => $name,
+    manage_docroot      => false,
+    run_uid             => $name,
+    run_gid             => $name,
+    ssl_mode            => 'force',
+    allow_override      => 'FileInfo Limit',
+    php_settings        => {
       php_tmp_dir             => "/var/www/vhosts/${name}/tmp/",
       'apc.shm_size'          => '512M',
       safe_mode               => 'Off',
@@ -76,12 +80,11 @@ define horde4::instance(
       'session.gc_divisor'    => 10000,
       file_uploads            => 'On',
       display_errors          => 'Off',
-      register_globals        => 'Off',
       include_path            => "/var/www/vhosts/${name}/pear/php",
       open_basedir            => "/var/www/vhosts/${name}/www/:/var/www/vhosts/${name}/pear:/var/www/upload_tmp_dir/${name}/:/var/www/session.save_path/${name}/:/var/www/vhosts/${name}/logs/:/var/www/vhosts/${name}/tmp/:/etc/resolv.conf:/.pearrc",
     },
-    php_options => { use_pear => true },
-    additional_options => "
+    php_options         => { use_pear => true },
+    additional_options  => "
 
   ExpiresActive On
   ExpiresByType image/png 'now plus 1 week'
@@ -109,7 +112,7 @@ define horde4::instance(
    Deny  from all
    Allow from localhost
   </LocationMatch>",
-    mod_security => false,
+    mod_security        => false,
   }
 
   file{
@@ -146,90 +149,108 @@ define horde4::instance(
     Class['horde4::base'] -> Class['git']
     file{
       "/var/www/vhosts/${name}/pear":
-        ensure => directory,
+        ensure  => directory,
         seltype => 'httpd_sys_rw_content_t',
-        owner => root, group => $name, mode => 0640;
+        owner   => root,
+        group   => $name,
+        mode    => '0640';
       "/var/www/vhosts/${name}/tmp":
-        ensure => directory,
+        ensure  => directory,
         seltype => 'httpd_sys_rw_content_t',
-        owner => $name, group => $name, mode => 0640;
+        owner   => $name,
+        group   => $name,
+        mode    => '0640';
       "/var/www/vhosts/${name}/pear.conf":
         replace => false,
         content => template('horde4/pear.conf.erb'),
         seltype => 'httpd_sys_rw_content_t',
-        owner => root, group => $name, mode => 0640;
-       "/var/www/vhosts/${name}/www/static":
-        ensure => directory,
+        owner   => root,
+        group   => $name,
+        mode    => '0640';
+      "/var/www/vhosts/${name}/www/static":
+        ensure  => directory,
         seltype => 'httpd_sys_rw_content_t',
-        owner => $name, group => $name, mode => 0640;
+        owner   => $name,
+        group   => $name,
+        mode    => '0640';
     }
 
     exec{
       "install_pear_for_${name}":
-        command => "pear -c /var/www/vhosts/${name}/pear.conf install pear",
-        group => $name,
-        creates => "/var/www/vhosts/${name}/pear/pear",
-        require => File["/var/www/vhosts/${name}/pear.conf"];
+        command     => "pear -c /var/www/vhosts/${name}/pear.conf install pear",
+        group       => $name,
+        creates     => "/var/www/vhosts/${name}/pear/pear",
+        require     => File["/var/www/vhosts/${name}/pear.conf"];
       "install_horde_for_${name}":
-        command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf channel-discover pear.horde.org && /var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install horde/horde_role && /var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde",
-        timeout => 1000,
-        creates => "/var/www/vhosts/${name}/www/index.php",
-        notify  => Exec["fix_horde_perms_for_${name}"],
-        group   => $name,
-        require => Exec["install_pear_for_${name}"];
+        command     => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf channel-discover pear.horde.org && /var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install horde/horde_role && /var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde",
+        timeout     => 1000,
+        creates     => "/var/www/vhosts/${name}/www/index.php",
+        notify      => Exec["fix_horde_perms_for_${name}"],
+        group       => $name,
+        require     => Exec["install_pear_for_${name}"];
       "install_webmail_for_${name}":
-        command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/webmail",
-        creates => "/var/www/vhosts/${name}/www/imp/index.php",
-        group => $name,
-        notify => Exec["fix_horde_perms_for_${name}"],
-        require => Exec["install_horde_for_${name}"];
+        command     => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/webmail",
+        creates     => "/var/www/vhosts/${name}/www/imp/index.php",
+        group       => $name,
+        notify      => Exec["fix_horde_perms_for_${name}"],
+        require     => Exec["install_horde_for_${name}"];
       "install_menmo_for_${name}":
-        command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/mnemo",
-        creates => "/var/www/vhosts/${name}/www/mnemo/index.php",
-        group => $name,
-        notify => Exec["fix_horde_perms_for_${name}"],
-        require => Exec["install_webmail_for_${name}"];
+        command     => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/mnemo",
+        creates     => "/var/www/vhosts/${name}/www/mnemo/index.php",
+        group       => $name,
+        notify      => Exec["fix_horde_perms_for_${name}"],
+        require     => Exec["install_webmail_for_${name}"];
       "install_passwd_for_${name}":
-        command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/passwd",
-        creates => "/var/www/vhosts/${name}/www/passwd/index.php",
-        group => $name,
-        notify => Exec["install_autoloader_for_${name}"],
-        require => Exec["install_webmail_for_${name}"];
+        command     => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/passwd",
+        creates     => "/var/www/vhosts/${name}/www/passwd/index.php",
+        group       => $name,
+        notify      => Exec["install_autoloader_for_${name}"],
+        require     => Exec["install_webmail_for_${name}"];
       "install_autoloader_for_${name}":
-        command => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde_autoloader_cache",
-        creates => "/var/www/vhosts/${name}/pear/horde-autoloader-cache-prune",
-        group => $name,
-        notify => Exec["fix_horde_perms_for_${name}"],
-        require => Exec["install_passwd_for_${name}"];
+        command     => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde_autoloader_cache",
+        creates     => "/var/www/vhosts/${name}/pear/horde-autoloader-cache-prune",
+        group       => $name,
+        notify      => Exec["fix_horde_perms_for_${name}"],
+        require     => Exec["install_passwd_for_${name}"];
       "fix_horde_perms_for_${name}":
-        command => "chown root:${name} /var/www/vhosts/${name}/www/* /var/www/vhosts/${name}/pear/* -R",
-        before => File["/var/www/vhosts/${name}/www/static","/var/www/vhosts/${name}/tmp"],
+        command     => "chown root:${name} /var/www/vhosts/${name}/www/* /var/www/vhosts/${name}/pear/* -R",
+        before      => File["/var/www/vhosts/${name}/www/static","/var/www/vhosts/${name}/tmp"],
         refreshonly => true;
     }
 
     if $upgrade_mode {
       file{"/var/www/vhosts/${name}/www/config/conf.php":
         source  => ["puppet:///modules/site_horde4/upgrade-${name}-conf.php",
-                    "puppet:///modules/site_horde4/upgrade-conf.php"],
-        owner   => 'root', group => $name, mode => 0440,
+                    'puppet:///modules/site_horde4/upgrade-conf.php'],
+        owner   => 'root',
+        group   => $name,
+        mode    => '0440',
         require => Exec["install_passwd_for_${name}"];
       }
     } else {
       file{"/var/www/vhosts/${name}/www":
         ensure  => directory,
         source  => "puppet:///modules/site_horde4/${name}/config",
-        owner   => 'root', group => $name, mode => 0440,
+        owner   => 'root',
+        group   => $name,
+        mode    => '0440',
         recurse => remote,
         force   => true,
         require => Exec["install_passwd_for_${name}"];
       }
     }
 
+    $upgrade_ensure = $upgrade_mode ? {
+      true => present,
+      false => absent
+    }
     file{"/var/www/vhosts/${name}/www/config/registry.d/upgrade-mode.php":
-      ensure => $upgrade_mode ? { true => present, false => absent },
-      source => ["puppet:///modules/site_horde4/upgrade-registry.php",
-                 "puppet:///modules/horde4/upgrade-registry.php"],
-      owner => 'root', group => $name, mode => 0440;
+      ensure  => $upgrade_ensure,
+      source  => ['puppet:///modules/site_horde4/upgrade-registry.phpr',
+                  'puppet:///modules/horde4/upgrade-registry.php'],
+      owner   => 'root',
+      group   => $name,
+      mode    => '0440';
     }
 
     File["/etc/cron.d/${name}_horde_tmp_cleanup"]{
@@ -263,7 +284,7 @@ define horde4::instance(
         command => "pear -c /var/www/vhosts/${name}/pear.conf install HTTP_WebDAV_Server-beta",
         creates => "/var/www/vhosts/${name}/pear/php/HTTP/WebDAV/Server.php",
         require => Exec["install_webmail_for_${name}"],
-        notify => Exec["fix_horde_perms_for_${name}"];
+        notify  => Exec["fix_horde_perms_for_${name}"];
     }
   }
   if $real_install_libs['date_holidays'] {
@@ -272,28 +293,24 @@ define horde4::instance(
         command => "pear -c /var/www/vhosts/${name}/pear.conf install Date_Holidays-alpha#all",
         creates => "/var/www/vhosts/${name}/pear/php/Date/Holidays.php",
         require => Exec["install_webmail_for_${name}"],
-        notify => Exec["fix_horde_perms_for_${name}"];
+        notify  => Exec["fix_horde_perms_for_${name}"];
     }
   }
   if $real_install_libs['imagick'] {
     include php::packages::imagick
   }
 
-
-/*
-  if $manage_nagios {
-    $real_monitor_url = $monitor_url ? {
-      'absent' => $name,
-      default => $monitor_url,
-    }
-    nagios::service::http{$real_monitor_url:
-      ensure => $ensure,
-      check_url => '/imp/login.php',
-      ssl_mode => $ssl_mode,
-      check_code => '301',
-      }
-    }
-  }
-*/
-
+# if $manage_nagios {
+#   $real_monitor_url = $monitor_url ? {
+#     'absent' => $name,
+#     default => $monitor_url,
+#   }
+#   nagios::service::http{$real_monitor_url:
+#     ensure => $ensure,
+#     check_url => '/imp/login.php',
+#     ssl_mode => $ssl_mode,
+#     check_code => '301',
+#     }
+#   }
+# }
 }
