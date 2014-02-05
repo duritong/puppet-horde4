@@ -181,13 +181,20 @@ define horde4::instance(
         group       => $name,
         creates     => "/var/www/vhosts/${name}/pear/pear",
         require     => File["/var/www/vhosts/${name}/pear.conf"];
+      "discover_pear_channel_horde_for_${name}":
+        command     => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf channel-discover pear.horde.org",
+        timeout     => 1000,
+        creates     => "/var/www/vhosts/${name}/pear/php/.channels/pear.horde.org.reg",
+        notify      => Exec["fix_horde_perms_for_${name}"],
+        group       => $name,
+        require     => Exec["install_pear_for_${name}"];
       "install_horde_for_${name}":
-        command     => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf channel-discover pear.horde.org && /var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install horde/horde_role && /var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde",
+        command     => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install horde/horde_role && /var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde",
         timeout     => 1000,
         creates     => "/var/www/vhosts/${name}/www/index.php",
         notify      => Exec["fix_horde_perms_for_${name}"],
         group       => $name,
-        require     => Exec["install_pear_for_${name}"];
+        require     => Exec["discover_pear_channel_horde_for_${name}"];
       "install_webmail_for_${name}":
         command     => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/webmail",
         creates     => "/var/www/vhosts/${name}/www/imp/index.php",
