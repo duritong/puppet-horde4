@@ -255,11 +255,13 @@ define horde4::instance(
 
     File["/etc/cron.d/${name}_horde_tmp_cleanup"]{
       content => "1 * * * * ${name} tmpwatch 12h /var/www/vhosts/${name}/tmp; tmpwatch 12h /var/www/upload_tmp_dir/${name}\n",
+      require => Exec["install_autoloader_for_${name}"],
     }
 
     # Poor mans session timeout
     File["/etc/cron.d/${name}_horde_session_cleanup"]{
       content => "*/15 * * * * ${name} tmpwatch 40m /var/www/session.save_path/${name}\n",
+      require => Exec["install_autoloader_for_${name}"],
     }
 
     if $alarm_cron {
