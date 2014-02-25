@@ -1,5 +1,6 @@
 class horde4::base {
 
+  include php::extensions::bcmath
   include php::extensions::common
   include php::extensions::crypt_blowfish
   include php::extensions::pgsql
