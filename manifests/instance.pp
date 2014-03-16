@@ -190,19 +190,26 @@ define horde4::instance(
         notify      => Exec["fix_horde_perms_for_${name}"],
         group       => $name,
         require     => Exec["install_pear_for_${name}"];
-      "install_horde_for_${name}":
-        command     => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install horde/horde_role && /var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde",
+      "install_horde_for_${name}_step_1":
+        command     => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install horde/horde_role",
+        timeout     => 1000,
+        creates     => "pear/php/PEAR/Installer/Role/Horde.xml",
+        notify      => Exec["fix_horde_perms_for_${name}"],
+        group       => $name,
+        require     => Exec["discover_pear_channel_horde_for_${name}"];
+      "install_horde_for_${name}_step_2":
+        command     => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde",
         timeout     => 1000,
         creates     => "/var/www/vhosts/${name}/www/index.php",
         notify      => Exec["fix_horde_perms_for_${name}"],
         group       => $name,
-        require     => Exec["discover_pear_channel_horde_for_${name}"];
+        require     => Exec["install_horde_for_${name}_step_1"];
       "install_webmail_for_${name}":
         command     => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/webmail",
         creates     => "/var/www/vhosts/${name}/www/imp/index.php",
         group       => $name,
         notify      => Exec["fix_horde_perms_for_${name}"],
-        require     => Exec["install_horde_for_${name}"];
+        require     => Exec["install_horde_for_${name}_step_2"];
       "install_menmo_for_${name}":
         command     => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/mnemo",
         creates     => "/var/www/vhosts/${name}/www/mnemo/index.php",
