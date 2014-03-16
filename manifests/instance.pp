@@ -193,7 +193,7 @@ define horde4::instance(
       "install_horde_for_${name}_step_1":
         command     => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install horde/horde_role",
         timeout     => 1000,
-        creates     => "pear/php/PEAR/Installer/Role/Horde.xml",
+        creates     => "/var/www/vhosts/${name}/pear/php/PEAR/Installer/Role/Horde.xml",
         notify      => Exec["fix_horde_perms_for_${name}"],
         group       => $name,
         require     => Exec["discover_pear_channel_horde_for_${name}"];
