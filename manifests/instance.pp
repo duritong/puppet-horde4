@@ -199,19 +199,21 @@ define horde4::instance(
         require     => Exec["discover_pear_channel_horde_for_${name}"];
       "install_horde_for_${name}_step_2":
         command     => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde",
-        timeout     => 1000,
+        timeout     => 0,
         creates     => "/var/www/vhosts/${name}/www/index.php",
         notify      => Exec["fix_horde_perms_for_${name}"],
         group       => $name,
         require     => Exec["install_horde_for_${name}_step_1"];
       "install_webmail_for_${name}":
         command     => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/webmail",
+        timeout     => 0,
         creates     => "/var/www/vhosts/${name}/www/imp/index.php",
         group       => $name,
         notify      => Exec["fix_horde_perms_for_${name}"],
         require     => Exec["install_horde_for_${name}_step_2"];
       "install_menmo_for_${name}":
         command     => "/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/mnemo",
+        timeout     => 0,
         creates     => "/var/www/vhosts/${name}/www/mnemo/index.php",
         group       => $name,
         notify      => Exec["fix_horde_perms_for_${name}"],
