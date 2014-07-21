@@ -84,7 +84,10 @@ define horde4::instance(
       include_path            => "/var/www/vhosts/${name}/pear/php",
       open_basedir            => "/var/www/vhosts/${name}/www/:/var/www/vhosts/${name}/pear:/var/www/upload_tmp_dir/${name}/:/var/www/session.save_path/${name}/:/var/www/vhosts/${name}/logs/:/var/www/vhosts/${name}/tmp/:/etc/resolv.conf:/.pearrc",
     },
-    php_options         => { use_pear => true },
+    php_options         => {
+      use_pear                => true,
+      additional_open_basedir => '/etc/pki/tls/certs/ca-bundle.crt',
+    },
     additional_options  => "${additional_vhost_options}
 
   ExpiresActive On
