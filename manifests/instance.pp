@@ -3,20 +3,21 @@
 define horde4::instance(
   $run_uid,
   $run_gid,
-  $ensure           = 'present',
-  $domainalias      = 'absent',
-  $wwwmail          = false,
-  $alarm_cron       = true,
-  $upgrade_mode     = false,
-  $install_libs     = {
+  $ensure                   = 'present',
+  $domainalias              = 'absent',
+  $wwwmail                  = false,
+  $alarm_cron               = true,
+  $upgrade_mode             = false,
+  $install_libs             = {
     'webdav_server' => true,
     'date_holidays' => true,
     'imagick'       => true
   },
-  $manage_sieve     = true,
-  $manage_shorewall = false,
-  $manage_nagios    = false,
-  $additional_vhost_options = ''
+  $manage_sieve             = true,
+  $manage_shorewall         = false,
+  $manage_nagios            = false,
+  $additional_vhost_options = '',
+  $configuration            = {},
 ){
 
   $user_shell = $::operatingsystem ? {
@@ -59,6 +60,7 @@ define horde4::instance(
   }
   apache::vhost::php::standard{$name:
     ensure              => $ensure,
+    configuration       => $configuration,
     domainalias         => $domainalias,
     run_mode            => 'fcgid',
     owner               => root,
