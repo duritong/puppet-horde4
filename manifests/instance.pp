@@ -155,7 +155,7 @@ define horde4::instance(
     require git
     Class['horde4::base'] -> Class['git']
     file{
-      "/var/www/vhosts/${name}/pear":
+      [ "/var/www/vhosts/${name}/pear", "/var/www/vhosts/${name}/bin" ]:
         ensure  => directory,
         seltype => 'httpd_sys_rw_content_t',
         owner   => root,
@@ -180,6 +180,16 @@ define horde4::instance(
         owner   => $name,
         group   => $name,
         mode    => '0640';
+      "/var/www/vhosts/${name}/bin/horde_cleanup_user.php":
+        source  => 'puppet:///modules/horde4/scripts/horde_cleanup.php',
+        owner   => root,
+        group   => $name,
+        mode    => '0650';
+      "/var/www/vhosts/${name}/bin/horde_cleanup_user.sh":
+        content => "#!/bin/bash\nPHP_PEAR_SYSCONF_DIR=/var/www/vhosts/${name}/ php -d include_path='/var/www/vhosts/${name}/pear/php:/var/www/vhosts/${name}/www' -d error_log='/var/www/vhosts/${name}/logs/php_error_log' -d safe_mode='off' -d error_reporting='E_ALL & ~E_DEPRECATED' /var/www/vhosts/${name}/bin/horde_cleanup.php \"$@\"\n",
+        owner   => root,
+        group   => $name,
+        mode    => '0650';
     }
 
     exec{
