@@ -21,35 +21,35 @@ define horde4::instance(
 ){
 
   $user_shell = $::operatingsystem ? {
-    debian  => '/usr/sbin/nologin',
-    ubuntu  => '/usr/sbin/nologin',
-    default => '/sbin/nologin'
+    'debian' => '/usr/sbin/nologin',
+    'ubuntu' => '/usr/sbin/nologin',
+    default  => '/sbin/nologin'
   }
   $user_homedir = $::operatingsystem ? {
-    openbsd => "/var/www/htdocs/${name}",
-    default => "/var/www/vhosts/${name}"
+    'openbsd' => "/var/www/htdocs/${name}",
+    default   => "/var/www/vhosts/${name}"
   }
   user::managed{$name:
-    ensure      => $ensure,
-    uid         => $run_uid,
-    gid         => $run_gid,
-    shell       => $user_shell,
-    managehome  => false,
-    homedir     => $user_homedir,
-    before      => Apache::Vhost::Php::Standard[$name],
+    ensure     => $ensure,
+    uid        => $run_uid,
+    gid        => $run_gid,
+    shell      => $user_shell,
+    managehome => false,
+    homedir    => $user_homedir,
+    before     => Apache::Vhost::Php::Standard[$name],
   }
 
   user::groups::manage_user{"apache_in_${name}":
-    ensure  => $ensure,
-    group   => $name,
-    user    => 'apache'
+    ensure => $ensure,
+    group  => $name,
+    user   => 'apache'
   }
 
   if $wwwmail {
     user::groups::manage_user{"${name}_in_wwwmailers":
-      ensure  => $ensure,
-      group   => 'wwwmailers',
-      user    => $name
+      ensure => $ensure,
+      group  => 'wwwmailers',
+      user   => $name
     }
     if ($ensure == 'present') {
       require webhosting::wwwmailers
@@ -59,20 +59,20 @@ define horde4::instance(
     }
   }
   apache::vhost::php::standard{$name:
-    ensure              => $ensure,
-    configuration       => $configuration,
-    domainalias         => $domainalias,
-    run_mode            => 'fcgid',
-    owner               => root,
-    group               => $name,
-    documentroot_owner  => root,
-    documentroot_group  => $name,
-    manage_docroot      => false,
-    run_uid             => $name,
-    run_gid             => $name,
-    ssl_mode            => 'force',
-    allow_override      => 'FileInfo Limit',
-    php_settings        => {
+    ensure             => $ensure,
+    configuration      => $configuration,
+    domainalias        => $domainalias,
+    run_mode           => 'fcgid',
+    owner              => root,
+    group              => $name,
+    documentroot_owner => root,
+    documentroot_group => $name,
+    manage_docroot     => false,
+    run_uid            => $name,
+    run_gid            => $name,
+    ssl_mode           => 'force',
+    allow_override     => 'FileInfo Limit',
+    php_settings       => {
       php_tmp_dir             => "/var/www/vhosts/${name}/tmp/",
       'apc.shm_size'          => '512M',
       safe_mode               => 'Off',
@@ -86,10 +86,10 @@ define horde4::instance(
       include_path            => "/var/www/vhosts/${name}/pear/php",
       open_basedir            => "/var/www/vhosts/${name}/www/:/var/www/vhosts/${name}/pear:/var/www/upload_tmp_dir/${name}/:/var/www/session.save_path/${name}/:/var/www/vhosts/${name}/logs/:/var/www/vhosts/${name}/tmp/:/etc/resolv.conf:/.pearrc:/etc/pki/tls/certs/ca-bundle.crt",
     },
-    php_options         => {
-      use_pear                => true,
+    php_options        => {
+      use_pear => true,
     },
-    additional_options  => "${additional_vhost_options}
+    additional_options => "${additional_vhost_options}
 
   ExpiresActive On
   ExpiresByType image/png 'now plus 1 week'
@@ -118,7 +118,7 @@ define horde4::instance(
    Deny  from all
    Allow from localhost
   </LocationMatch>",
-    mod_security        => false,
+    mod_security       => false,
   }
 
   file{
@@ -274,16 +274,16 @@ define horde4::instance(
     }
 
     $upgrade_ensure = $upgrade_mode ? {
-      true => present,
+      true  => present,
       false => absent
     }
     file{"/var/www/vhosts/${name}/www/config/registry.d/upgrade-mode.php":
-      ensure  => $upgrade_ensure,
-      source  => ['puppet:///modules/site_horde4/upgrade-registry.phpr',
-                  'puppet:///modules/horde4/upgrade-registry.php'],
-      owner   => 'root',
-      group   => $name,
-      mode    => '0440';
+      ensure => $upgrade_ensure,
+      source => ['puppet:///modules/site_horde4/upgrade-registry.php',
+                 'puppet:///modules/horde4/upgrade-registry.php'],
+      owner  => 'root',
+      group  => $name,
+      mode   => '0440';
     }
 
     File["/etc/cron.d/${name}_horde_tmp_cleanup"]{
