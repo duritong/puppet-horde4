@@ -140,8 +140,8 @@ define horde4::instance(
 
     if $manage_sieve {
       include php::packages::net_sieve
-      include php::packages::pecl_http
     }
+    include php::packages::pecl_http
 
     if $manage_shorewall {
       include shorewall::rules::out::keyserver
