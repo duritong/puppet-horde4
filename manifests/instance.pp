@@ -75,6 +75,8 @@ define horde4::instance(
     php_settings       => {
       php_tmp_dir             => "/var/www/vhosts/${name}/tmp/",
       'apc.shm_size'          => '512M',
+      'apc.shm_segments'      => '10',
+      'apc.max_file_size'     => '2M',
       safe_mode               => 'Off',
       register_globals        => 'Off',
       magic_quotes_runtime    => 'Off',
