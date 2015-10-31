@@ -17,6 +17,7 @@ define horde4::instance(
   $manage_shorewall         = false,
   $manage_nagios            = false,
   $additional_vhost_options = '',
+  $php_installation         = 'system',
   $configuration            = {},
 ){
 
@@ -70,6 +71,7 @@ define horde4::instance(
     manage_docroot     => false,
     run_uid            => $name,
     run_gid            => $name,
+    php_installation   => $php_installation,
     ssl_mode           => 'force',
     allow_override     => 'FileInfo Limit',
     php_settings       => {
