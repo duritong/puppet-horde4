@@ -10,7 +10,7 @@ class horde4::base {
   include php::packages::lzf
   include php::packages::services_weather
   include php::packages::cache
-  include php::packages::intl
+  # include php::packages::intl
   include php::packages::gettext
   include aspell
 
