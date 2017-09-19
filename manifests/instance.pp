@@ -11,7 +11,7 @@ define horde4::instance(
   $install_libs             = {
     'webdav_server' => true,
     'date_holidays' => true,
-    'imagick'       => true
+    'imagick'       => true,
   },
   $manage_sieve             = true,
   $manage_shorewall         = false,
@@ -43,14 +43,14 @@ define horde4::instance(
   user::groups::manage_user{"apache_in_${name}":
     ensure => $ensure,
     group  => $name,
-    user   => 'apache'
+    user   => 'apache',
   }
 
   if $wwwmail {
     user::groups::manage_user{"${name}_in_wwwmailers":
       ensure => $ensure,
       group  => 'wwwmailers',
-      user   => $name
+      user   => $name,
     }
     if ($ensure == 'present') {
       require webhosting::wwwmailers
@@ -280,8 +280,8 @@ define horde4::instance(
     }
     file{"/var/www/vhosts/${name}/www/config/registry.d/upgrade-mode.php":
       ensure => $upgrade_ensure,
-      source => ['puppet:///modules/site_horde4/upgrade-registry.php',
-                 'puppet:///modules/horde4/upgrade-registry.php'],
+      source => [ 'puppet:///modules/site_horde4/upgrade-registry.php',
+                  'puppet:///modules/horde4/upgrade-registry.php'],
       owner  => 'root',
       group  => $name,
       mode   => '0440';
@@ -310,7 +310,7 @@ define horde4::instance(
   $std_install_libs = {
     'webdav_server' => true,
     'date_holidays' => true,
-    'imagick'       => true
+    'imagick'       => true,
   }
   $real_install_libs = merge($std_install_libs,$install_libs)
 
