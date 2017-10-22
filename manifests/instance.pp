@@ -159,7 +159,6 @@ define horde4::instance(
     file{
       [ "/var/www/vhosts/${name}/pear", "/var/www/vhosts/${name}/scripts" ]:
         ensure  => directory,
-        seltype => 'httpd_sys_rw_content_t',
         owner   => root,
         group   => $name,
         mode    => '0640';
@@ -172,7 +171,6 @@ define horde4::instance(
       "/var/www/vhosts/${name}/pear.conf":
         replace => false,
         content => template('horde4/pear.conf.erb'),
-        seltype => 'httpd_sys_rw_content_t',
         owner   => root,
         group   => $name,
         mode    => '0640';
@@ -240,7 +238,7 @@ define horde4::instance(
         notify      => Exec["fix_horde_perms_for_${name}"],
         require     => Exec["install_passwd_for_${name}"];
       "fix_horde_perms_for_${name}":
-        command     => "chown root:${name} /var/www/vhosts/${name}/www/* /var/www/vhosts/${name}/pear/* -R",
+        command     => "chown -R root:${name} /var/www/vhosts/${name}/www/* /var/www/vhosts/${name}/pear/*",
         before      => File["/var/www/vhosts/${name}/www/static","/var/www/vhosts/${name}/data"],
         refreshonly => true;
       "initial_db_seed_for_${name}":
@@ -254,12 +252,17 @@ define horde4::instance(
         subscribe   => Exec["initial_db_seed_for_${name}"],
         require     => Service['apache'],
         refreshonly => true;
+      "fix_horde_perms_for_${name}_2":
+        command     => "chown ${name} /var/www/vhosts/${name}/logs/horde* && restorecon -R /var/www/vhosts/${name}",
+        subscribe   => Exec["initial_db_seed_for_${name}_2"],
+        refreshonly => true;
     }
 
     if $upgrade_mode {
       file{"/var/www/vhosts/${name}/www/config/conf.php":
         source  => ["puppet:///modules/site_horde4/upgrade-${name}-conf.php",
                     'puppet:///modules/site_horde4/upgrade-conf.php'],
+        seltype => 'httpd_sys_rw_content_t',
         owner   => 'root',
         group   => $name,
         mode    => '0440',
@@ -273,6 +276,7 @@ define horde4::instance(
                           "puppet:///modules/ib_horde/${name}/config",
                           "puppet:///modules/ib_horde/config",
                         ],
+        seltype      => 'httpd_sys_rw_content_t',
         sourceselect => 'all',
         owner        => 'root',
         group        => $name,
@@ -289,16 +293,17 @@ define horde4::instance(
       false => absent
     }
     file{"/var/www/vhosts/${name}/www/config/registry.d/upgrade-mode.php":
-      ensure => $upgrade_ensure,
-      source => [ 'puppet:///modules/site_horde4/upgrade-registry.php',
-                  'puppet:///modules/horde4/upgrade-registry.php'],
-      owner  => 'root',
-      group  => $name,
-      mode   => '0440';
+      ensure  => $upgrade_ensure,
+      source  => [ 'puppet:///modules/site_horde4/upgrade-registry.php',
+                   'puppet:///modules/horde4/upgrade-registry.php'],
+      owner   => 'root',
+      group   => $name,
+      seltype => 'httpd_sys_rw_content_t',
+      mode    => '0440';
     }
 
     File["/etc/cron.d/${name}_horde_tmp_cleanup"]{
-      content => "1 * * * * ${name} tmpwatch -d 12h /var/www/vhosts/${name}/data/ /var/www/vhosts/${name}/tmp/upload_tmp/\n",
+      content => "1 * * * * ${name} tmpwatch -d 12h /var/www/vhosts/${name}/data/ /var/www/vhosts/${name}/tmp/uploads/\n",
       require => Exec["install_autoloader_for_${name}"],
     }
 
