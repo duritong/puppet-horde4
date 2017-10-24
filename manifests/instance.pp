@@ -295,7 +295,7 @@ define horde4::instance(
     file{"/var/www/vhosts/${name}/www/config/registry.d/upgrade-mode.php":
       ensure  => $upgrade_ensure,
       source  => [ 'puppet:///modules/site_horde4/upgrade-registry.php',
-                   'puppet:///modules/horde4/upgrade-registry.php'],
+                  'puppet:///modules/horde4/upgrade-registry.php'],
       owner   => 'root',
       group   => $name,
       seltype => 'httpd_sys_rw_content_t',
@@ -315,7 +315,7 @@ define horde4::instance(
 
     if $alarm_cron {
       File["/etc/cron.d/${name}_horde_alarm"]{
-        content => "*/5 * * * * ${name} scl enable ${scl_name} \"PHP_PEAR_SYSCONF_DIR=/var/www/vhosts/${name}/ php -d include_path='/var/www/vhosts/${name}/pear/php:/var/www/vhosts/${name}/www' -d error_log='/var/www/vhosts/${name}/logs/php_error_log' -d safe_mode='off' -d error_reporting='E_ALL & ~E_DEPRECATED' /var/www/vhosts/${name}/pear/horde-alarms\"\n",
+        content => "*/5 * * * * ${name} scl enable ${scl_name} \"PHP_PEAR_SYSCONF_DIR=/var/www/vhosts/${name}/ php -d include_path='/var/www/vhosts/${name}/pear/php:/var/www/vhosts/${name}/www' -d error_log='/var/www/vhosts/${name}/logs/php_error_log' -d safe_mode='off' -d error_reporting='E_ALL & ~E_DEPRECATED' -d apc.enable_cli=1 /var/www/vhosts/${name}/pear/horde-alarms\"\n",
         require => Exec["install_webmail_for_${name}"]
       }
     }
