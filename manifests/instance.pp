@@ -243,17 +243,21 @@ define horde4::instance(
         refreshonly => true;
       "initial_db_seed_for_${name}":
         command     => "scl enable ${scl_name} \"PHP_PEAR_SYSCONF_DIR=/var/www/vhosts/${name} php -d include_path='/var/www/vhosts/${name}/pear/php:/var/www/vhosts/${name}/www' -d error_log='/var/www/vhosts/${name}/logs/php_error_log' -d safe_mode='off' /var/www/vhosts/${name}/pear/horde-db-migrate\"",
+        user        => $name,
+        group       => $name,
         subscribe   => Exec["fix_horde_perms_for_${name}"],
         require     => Service['apache'],
         refreshonly => true;
       # somehow we need to run it twice
       "initial_db_seed_for_${name}_2":
         command     => "scl enable ${scl_name} \"PHP_PEAR_SYSCONF_DIR=/var/www/vhosts/${name} php -d include_path='/var/www/vhosts/${name}/pear/php:/var/www/vhosts/${name}/www' -d error_log='/var/www/vhosts/${name}/logs/php_error_log' -d safe_mode='off' /var/www/vhosts/${name}/pear/horde-db-migrate\"",
+        user        => $name,
+        group       => $name,
         subscribe   => Exec["initial_db_seed_for_${name}"],
         require     => Service['apache'],
         refreshonly => true;
       "fix_horde_perms_for_${name}_2":
-        command     => "chown ${name} /var/www/vhosts/${name}/logs/horde* && restorecon -R /var/www/vhosts/${name}",
+        command     => "chown -R ${name} var/www/vhosts/${name}/data/cache/* /var/www/vhosts/${name}/logs/horde* && restorecon -R /var/www/vhosts/${name}",
         subscribe   => Exec["initial_db_seed_for_${name}_2"],
         refreshonly => true;
     }
