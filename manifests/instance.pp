@@ -83,6 +83,7 @@ define horde4::instance(
       additional_open_basedir => "/var/www/vhosts/${name}/pear/:/var/www/vhosts/${name}/logs/:/etc/resolv.conf:/.pearrc:/etc/pki/tls/certs/ca-bundle.crt",
       additional_envs         => {
         'PHP_PEAR_SYSCONF_DIR' => "/var/www/vhosts/${name}",
+        'USE_ZEND_ALLOC'       => '0',
       },
     },
     php_settings       => {
