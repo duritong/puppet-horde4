@@ -17,6 +17,7 @@ define horde4::instance(
   $manage_shorewall         = false,
   $manage_nagios            = false,
   $additional_vhost_options = '',
+  $additional_php_options   = '',
   $php_installation         = 'scl56',
   $configuration            = {},
 ){
@@ -92,6 +93,8 @@ define horde4::instance(
       'session.use_trans_sid' => 'Off',
       'session.auto_start'    => 'Off',
       'session.gc_divisor'    => 10000,
+      # opcache segv on large mailboxes on scl56
+      'opcache.enable'        => 0,
       file_uploads            => 'On',
       display_errors          => 'Off',
       include_path            => "/var/www/vhosts/${name}/pear/php",
