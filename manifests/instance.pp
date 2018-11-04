@@ -149,11 +149,13 @@ define horde4::instance(
       }
     }
 
-    # map bins of supported installation
-    if $php_installation == 'scl56' {
-      $scl_name = 'rh-php56'
+    if $php_installation =~ /^scl/ {
+      $php_inst = regsubst($php_installation,'^scl','php')
+      require "::php::scl::${php_inst}"
+      $scl_name = getvar("php::scl::${php_inst}::scl_name")
     } else {
-      fail("Not such php_installation ${php_installation} supported at the moment")
+      # TODO: install cmds in the next sections need to be adapted
+      fail('This module currently only supports installation with SCLs')
     }
 
     $data_dir = "/var/www/vhosts/${name}/data"
