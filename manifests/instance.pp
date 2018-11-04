@@ -138,14 +138,14 @@ define horde4::instance(
 
   if $ensure == 'present' {
 
-    include horde4::base
+    include ::horde4::base
 
     if $manage_shorewall {
-      include shorewall::rules::out::keyserver
-      include shorewall::rules::out::imap
-      include shorewall::rules::out::pop3
+      include ::shorewall::rules::out::keyserver
+      include ::shorewall::rules::out::imap
+      include ::shorewall::rules::out::pop3
       if $manage_sieve {
-        include shorewall::rules::out::managesieve
+        include ::shorewall::rules::out::managesieve
       }
     }
 
@@ -161,10 +161,10 @@ define horde4::instance(
     $data_dir = "/var/www/vhosts/${name}/data"
     file{
       [ "/var/www/vhosts/${name}/pear", "/var/www/vhosts/${name}/scripts" ]:
-        ensure  => directory,
-        owner   => root,
-        group   => $name,
-        mode    => '0640';
+        ensure => directory,
+        owner  => root,
+        group  => $name,
+        mode   => '0640';
       [ "${data_dir}/token", "${data_dir}/cache", "${data_dir}/vfs" ]:
         ensure  => directory,
         seltype => 'httpd_sys_rw_content_t',
@@ -184,10 +184,10 @@ define horde4::instance(
         group   => $name,
         mode    => '0640';
       "/var/www/vhosts/${name}/scripts/horde_cleanup_user.php":
-        source  => 'puppet:///modules/horde4/scripts/horde_cleanup.php',
-        owner   => root,
-        group   => $name,
-        mode    => '0650';
+        source => 'puppet:///modules/horde4/scripts/horde_cleanup.php',
+        owner  => root,
+        group  => $name,
+        mode   => '0650';
       "/var/www/vhosts/${name}/scripts/horde_cleanup_user.sh":
         content => "#!/bin/bash\nscl enable ${scl_name} 'PHP_PEAR_SYSCONF_DIR=/var/www/vhosts/${name}/ php -d include_path='/var/www/vhosts/${name}/pear/php:/var/www/vhosts/${name}/www' -d error_log='/var/www/vhosts/${name}/logs/php_error_log' -d safe_mode='off' -d error_reporting='E_ALL & ~E_DEPRECATED' /var/www/vhosts/${name}/scripts/horde_cleanup_user.php \"$@\"'\n",
         owner   => root,
@@ -197,49 +197,49 @@ define horde4::instance(
 
     exec{
       "install_pear_for_${name}":
-        command     => "scl enable ${scl_name} 'pear -c /var/www/vhosts/${name}/pear.conf install --force pear'",
-        group       => $name,
-        creates     => "/var/www/vhosts/${name}/pear/pear",
-        require     => File["/var/www/vhosts/${name}/pear.conf"];
+        command => "scl enable ${scl_name} 'pear -c /var/www/vhosts/${name}/pear.conf install --force pear'",
+        group   => $name,
+        creates => "/var/www/vhosts/${name}/pear/pear",
+        require => File["/var/www/vhosts/${name}/pear.conf"];
       "discover_pear_channel_horde_for_${name}":
-        command     => "scl enable ${scl_name} '/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf channel-discover pear.horde.org'",
-        timeout     => 1000,
-        creates     => "/var/www/vhosts/${name}/pear/php/.channels/pear.horde.org.reg",
-        group       => $name,
-        require     => File["/var/www/vhosts/${name}/pear.conf"];
+        command => "scl enable ${scl_name} '/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf channel-discover pear.horde.org'",
+        timeout => 1000,
+        creates => "/var/www/vhosts/${name}/pear/php/.channels/pear.horde.org.reg",
+        group   => $name,
+        require => File["/var/www/vhosts/${name}/pear.conf"];
       "install_horde_for_${name}_step_1":
-        command     => "scl enable ${scl_name} '/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install horde/horde_role'",
-        timeout     => 1000,
-        creates     => "/var/www/vhosts/${name}/pear/php/PEAR/Installer/Role/Horde.xml",
-        notify      => Exec["fix_horde_perms_for_${name}"],
-        group       => $name,
-        require     => Exec["discover_pear_channel_horde_for_${name}"];
+        command => "scl enable ${scl_name} '/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install horde/horde_role'",
+        timeout => 1000,
+        creates => "/var/www/vhosts/${name}/pear/php/PEAR/Installer/Role/Horde.xml",
+        notify  => Exec["fix_horde_perms_for_${name}"],
+        group   => $name,
+        require => Exec["discover_pear_channel_horde_for_${name}"];
       "install_horde_for_${name}_step_2":
-        command     => "scl enable ${scl_name} '/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde'",
-        timeout     => 0,
-        creates     => "/var/www/vhosts/${name}/www/index.php",
-        notify      => Exec["fix_horde_perms_for_${name}"],
-        group       => $name,
-        require     => Exec["install_horde_for_${name}_step_1"];
+        command => "scl enable ${scl_name} '/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde'",
+        timeout => 0,
+        creates => "/var/www/vhosts/${name}/www/index.php",
+        notify  => Exec["fix_horde_perms_for_${name}"],
+        group   => $name,
+        require => Exec["install_horde_for_${name}_step_1"];
       "install_webmail_for_${name}":
-        command     => "scl enable ${scl_name} '/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/webmail'",
-        timeout     => 0,
-        creates     => "/var/www/vhosts/${name}/www/imp/index.php",
-        group       => $name,
-        notify      => Exec["fix_horde_perms_for_${name}"],
-        require     => Exec["install_horde_for_${name}_step_2"];
+        command => "scl enable ${scl_name} '/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/webmail'",
+        timeout => 0,
+        creates => "/var/www/vhosts/${name}/www/imp/index.php",
+        group   => $name,
+        notify  => Exec["fix_horde_perms_for_${name}"],
+        require => Exec["install_horde_for_${name}_step_2"];
       "install_passwd_for_${name}":
-        command     => "scl enable ${scl_name} '/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/passwd'",
-        creates     => "/var/www/vhosts/${name}/www/passwd/index.php",
-        group       => $name,
-        notify      => Exec["install_autoloader_for_${name}"],
-        require     => Exec["install_webmail_for_${name}"];
+        command => "scl enable ${scl_name} '/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/passwd'",
+        creates => "/var/www/vhosts/${name}/www/passwd/index.php",
+        group   => $name,
+        notify  => Exec["install_autoloader_for_${name}"],
+        require => Exec["install_webmail_for_${name}"];
       "install_autoloader_for_${name}":
-        command     => "scl enable ${scl_name} '/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde_autoloader_cache'",
-        creates     => "/var/www/vhosts/${name}/pear/horde-autoloader-cache-prune",
-        group       => $name,
-        notify      => Exec["fix_horde_perms_for_${name}"],
-        require     => Exec["install_passwd_for_${name}"];
+        command => "scl enable ${scl_name} '/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install -a -B horde/horde_autoloader_cache'",
+        creates => "/var/www/vhosts/${name}/pear/horde-autoloader-cache-prune",
+        group   => $name,
+        notify  => Exec["fix_horde_perms_for_${name}"],
+        require => Exec["install_passwd_for_${name}"];
       "fix_horde_perms_for_${name}":
         command     => "chown -R root:${name} /var/www/vhosts/${name}/www/* /var/www/vhosts/${name}/pear/*",
         before      => File["/var/www/vhosts/${name}/www/static","/var/www/vhosts/${name}/data"],
@@ -279,9 +279,9 @@ define horde4::instance(
       file{"/var/www/vhosts/${name}/www":
         ensure       => directory,
         source       => [ "puppet:///modules/site_horde4/${name}/config",
-                          "puppet:///modules/site_horde4/config",
+                          'puppet:///modules/site_horde4/config',
                           "puppet:///modules/ib_horde/${name}/config",
-                          "puppet:///modules/ib_horde/config",
+                          'puppet:///modules/ib_horde/config',
                         ],
         seltype      => 'httpd_sys_rw_content_t',
         sourceselect => 'all',
