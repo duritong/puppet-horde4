@@ -257,7 +257,7 @@ define horde4::instance(
         require     => Service['apache'],
         refreshonly => true;
       "fix_horde_perms_for_${name}_2":
-        command     => "chown -R ${name} var/www/vhosts/${name}/data/cache/* /var/www/vhosts/${name}/logs/horde* && restorecon -R /var/www/vhosts/${name}",
+        command     => "chown -R ${name} /var/www/vhosts/${name}/data/cache/* /var/www/vhosts/${name}/logs/horde* && restorecon -R /var/www/vhosts/${name}",
         subscribe   => Exec["initial_db_seed_for_${name}_2"],
         refreshonly => true;
     }
