@@ -184,12 +184,9 @@ define horde4::instance(
         group   => $name,
         mode    => '0640';
       "/var/www/vhosts/${name}/scripts/horde_cleanup_user.php":
-        source => 'puppet:///modules/horde4/scripts/horde_cleanup.php',
-        owner  => root,
-        group  => $name,
-        mode   => '0650';
+        ensure => absent;
       "/var/www/vhosts/${name}/scripts/horde_cleanup_user.sh":
-        content => "#!/bin/bash\nscl enable ${scl_name} 'PHP_PEAR_SYSCONF_DIR=/var/www/vhosts/${name}/ php -d include_path='/var/www/vhosts/${name}/pear/php:/var/www/vhosts/${name}/www' -d error_log='/var/www/vhosts/${name}/logs/php_error_log' -d safe_mode='off' -d error_reporting='E_ALL & ~E_DEPRECATED' /var/www/vhosts/${name}/scripts/horde_cleanup_user.php \"$@\"'\n",
+        content => "#!/bin/bash\nscl enable ${scl_name} 'PHP_PEAR_SYSCONF_DIR=/var/www/vhosts/${name}/ php -d include_path='/var/www/vhosts/${name}/pear/php:/var/www/vhosts/${name}/www' -d error_log='/var/www/vhosts/${name}/logs/php_error_log' -d safe_mode='off' -d error_reporting='E_ALL & ~E_DEPRECATED' /var/www/vhosts/${name}/pear/horde-remove-user-data \"$@\"'\n",
         owner   => root,
         group   => $name,
         mode    => '0650';
