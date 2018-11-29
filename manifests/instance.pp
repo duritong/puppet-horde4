@@ -19,6 +19,7 @@ define horde4::instance(
   $additional_vhost_options = '',
   $additional_php_options   = '',
   $php_installation         = 'scl56',
+  $run_mode                 = 'fcgid',
   $configuration            = {},
 ){
 
@@ -69,7 +70,7 @@ define horde4::instance(
     ensure             => $ensure,
     configuration      => $configuration,
     domainalias        => $domainalias,
-    run_mode           => 'fcgid',
+    run_mode           => $run_mode,
     owner              => root,
     group              => $name,
     documentroot_owner => root,
