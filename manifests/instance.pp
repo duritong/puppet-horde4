@@ -20,6 +20,8 @@ define horde4::instance(
   $additional_php_options   = '',
   $php_installation         = 'scl56',
   $php_run_mode             = 'fcgid',
+  $php_options              = {},
+  $php_settings             = {},
   $configuration            = {},
 ){
 
@@ -86,7 +88,7 @@ define horde4::instance(
       additional_envs         => {
         'PHP_PEAR_SYSCONF_DIR' => "/var/www/vhosts/${name}",
       },
-    },
+    } + $php_options,
     php_settings       => {
       safe_mode               => 'Off',
       register_globals        => 'Off',
@@ -97,7 +99,7 @@ define horde4::instance(
       file_uploads            => 'On',
       display_errors          => 'Off',
       include_path            => "/var/www/vhosts/${name}/pear/php",
-    },
+    } + $php_settings,
     additional_options => "${additional_vhost_options}
 
   ExpiresActive On
