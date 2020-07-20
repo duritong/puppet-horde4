@@ -112,8 +112,8 @@ define horde4::instance(
   RewriteEngine On
   RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
   RewriteRule ^/Microsoft-Server-ActiveSync /rpc.php [PT,QSA]
+  RewriteRule ^/autodiscover/autodiscover.xml /rpc.php [PT,QSA]
 
-  Alias /autodiscover/autodiscover.xml /var/www/vhosts/${name}/www/rpc.php
   RedirectPermanent /.well-known/carddav /rpc.php
 
   <DirectoryMatch \"^/var/www/vhosts/${name}/www/(.*/)?(config|lib|locale|po|scripts|templates)/(.*)?\">
