@@ -115,6 +115,7 @@ define horde4::instance(
   RewriteRule ^/autodiscover/autodiscover.xml /rpc.php [PT,QSA]
 
   RedirectPermanent /.well-known/carddav /rpc.php
+  RedirectPermanent /.well-known/caldav /rpc.php
 
   <DirectoryMatch \"^/var/www/vhosts/${name}/www/(.*/)?(config|lib|locale|po|scripts|templates)/(.*)?\">
     ${deny_statement}
