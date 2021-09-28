@@ -311,7 +311,7 @@ define horde4::instance(
     }
 
     File["/etc/cron.d/${name}_horde_tmp_cleanup"]{
-      content => "1 * * * * ${name} tmpwatch -d 12h /var/www/vhosts/${name}/data/ /var/www/vhosts/${name}/tmp/uploads/ /var/www/vhosts/${name}/tmp/tmp\n",
+      content => "1 * * * * ${name} tmpwatch -q -d 12h /var/www/vhosts/${name}/data/ /var/www/vhosts/${name}/tmp/uploads/ /var/www/vhosts/${name}/tmp/tmp\n",
       require => Exec["install_autoloader_for_${name}"],
     }
 
