@@ -1,6 +1,6 @@
 # an instance of horde
 # creates a complete horde installation
-define horde4::instance(
+define horde4::instance (
   $run_uid,
   $run_gid,
   $ensure                   = 'present',
@@ -23,18 +23,17 @@ define horde4::instance(
   $php_options              = {},
   $php_settings             = {},
   $configuration            = {},
-){
-
-  $user_shell = $::operatingsystem ? {
+) {
+  $user_shell = $facts['os']['name'] ? {
     'debian' => '/usr/sbin/nologin',
     'ubuntu' => '/usr/sbin/nologin',
     default  => '/sbin/nologin'
   }
-  $user_homedir = $::operatingsystem ? {
+  $user_homedir = $facts['os']['name'] ? {
     'openbsd' => "/var/www/htdocs/${name}",
     default   => "/var/www/vhosts/${name}"
   }
-  user::managed{$name:
+  user::managed { $name:
     ensure     => $ensure,
     uid        => $run_uid,
     gid        => $run_gid,
@@ -44,21 +43,21 @@ define horde4::instance(
     before     => Apache::Vhost::Php::Standard[$name],
   }
 
-  user::groups::manage_user{"apache_in_${name}":
+  user::groups::manage_user { "apache_in_${name}":
     ensure => $ensure,
     group  => $name,
     user   => 'apache',
   }
 
   if $wwwmail {
-    user::groups::manage_user{"${name}_in_wwwmailers":
+    user::groups::manage_user { "${name}_in_wwwmailers":
       ensure => $ensure,
       group  => 'wwwmailers',
       user   => $name,
     }
     if ($ensure == 'present') {
       require webhosting::wwwmailers
-      User::Groups::Manage_user["${name}_in_wwwmailers"]{
+      User::Groups::Manage_user["${name}_in_wwwmailers"] {
         require => User::Managed[$name],
       }
     }
@@ -68,7 +67,7 @@ define horde4::instance(
   } else {
     $deny_statement = "Order allow,deny\n    Deny From All"
   }
-  apache::vhost::php::standard{$name:
+  apache::vhost::php::standard { $name:
     ensure             => $ensure,
     configuration      => $configuration,
     domainalias        => $domainalias,
@@ -127,7 +126,7 @@ define horde4::instance(
     mod_security       => false,
   }
 
-  file{
+  file {
     "/etc/cron.d/${name}_horde_alarm":;
     "/etc/cron.d/${name}_horde_tmp_cleanup":
       ensure => $ensure;
@@ -135,21 +134,20 @@ define horde4::instance(
       ensure => $ensure;
   }
   if (!$alarm_cron and $ensure == 'present') or ($ensure != 'present') {
-    File["/etc/cron.d/${name}_horde_alarm"]{
+    File["/etc/cron.d/${name}_horde_alarm"] {
       ensure => absent,
     }
   }
 
   if $ensure == 'present' {
-
-    include ::horde4::base
+    include horde4::base
 
     if $manage_shorewall {
-      include ::shorewall::rules::out::keyserver
-      include ::shorewall::rules::out::imap
-      include ::shorewall::rules::out::pop3
+      include shorewall::rules::out::keyserver
+      include shorewall::rules::out::imap
+      include shorewall::rules::out::pop3
       if $manage_sieve {
-        include ::shorewall::rules::out::managesieve
+        include shorewall::rules::out::managesieve
       }
     }
 
@@ -163,13 +161,13 @@ define horde4::instance(
     }
 
     $data_dir = "/var/www/vhosts/${name}/data"
-    file{
-      [ "/var/www/vhosts/${name}/pear", "/var/www/vhosts/${name}/scripts" ]:
+    file {
+      ["/var/www/vhosts/${name}/pear", "/var/www/vhosts/${name}/scripts"]:
         ensure => directory,
         owner  => root,
         group  => $name,
         mode   => '0640';
-      [ "${data_dir}/token", "${data_dir}/cache", "${data_dir}/vfs" ]:
+      ["${data_dir}/token", "${data_dir}/cache", "${data_dir}/vfs"]:
         ensure  => directory,
         seltype => 'httpd_sys_rw_content_t',
         owner   => $name,
@@ -196,7 +194,7 @@ define horde4::instance(
         mode    => '0550';
     }
 
-    exec{
+    exec {
       "install_pear_for_${name}":
         command => "scl enable ${scl_name} 'pear -c /var/www/vhosts/${name}/pear.conf install --force pear'",
         group   => $name,
@@ -267,9 +265,9 @@ define horde4::instance(
     }
 
     if $upgrade_mode {
-      file{"/var/www/vhosts/${name}/www/config/conf.php":
+      file { "/var/www/vhosts/${name}/www/config/conf.php":
         source  => ["puppet:///modules/site_horde4/upgrade-${name}-conf.php",
-                    'puppet:///modules/site_horde4/upgrade-conf.php'],
+        'puppet:///modules/site_horde4/upgrade-conf.php'],
         seltype => 'httpd_sys_rw_content_t',
         owner   => 'root',
         group   => $name,
@@ -277,13 +275,13 @@ define horde4::instance(
         require => Exec["install_passwd_for_${name}"];
       }
     } else {
-      file{"/var/www/vhosts/${name}/www":
+      file { "/var/www/vhosts/${name}/www":
         ensure       => directory,
-        source       => [ "puppet:///modules/site_horde4/${name}/config",
-                          'puppet:///modules/site_horde4/config',
-                          "puppet:///modules/ib_horde/${name}/config",
-                          'puppet:///modules/ib_horde/config',
-                        ],
+        source       => ["puppet:///modules/site_horde4/${name}/config",
+          'puppet:///modules/site_horde4/config',
+          "puppet:///modules/ib_horde/${name}/config",
+          'puppet:///modules/ib_horde/config',
+        ],
         seltype      => 'httpd_sys_rw_content_t',
         sourceselect => 'all',
         owner        => 'root',
@@ -300,29 +298,29 @@ define horde4::instance(
       true  => present,
       false => absent
     }
-    file{"/var/www/vhosts/${name}/www/config/registry.d/upgrade-mode.php":
+    file { "/var/www/vhosts/${name}/www/config/registry.d/upgrade-mode.php":
       ensure  => $upgrade_ensure,
-      source  => [ 'puppet:///modules/site_horde4/upgrade-registry.php',
-                  'puppet:///modules/horde4/upgrade-registry.php'],
+      source  => ['puppet:///modules/site_horde4/upgrade-registry.php',
+      'puppet:///modules/horde4/upgrade-registry.php'],
       owner   => 'root',
       group   => $name,
       seltype => 'httpd_sys_rw_content_t',
       mode    => '0440';
     }
 
-    File["/etc/cron.d/${name}_horde_tmp_cleanup"]{
+    File["/etc/cron.d/${name}_horde_tmp_cleanup"] {
       content => "1 * * * * ${name} tmpwatch -q -d 12h /var/www/vhosts/${name}/data/ /var/www/vhosts/${name}/tmp/uploads/ /var/www/vhosts/${name}/tmp/tmp\n",
       require => Exec["install_autoloader_for_${name}"],
     }
 
     # Poor mans session timeout
-    File["/etc/cron.d/${name}_horde_session_cleanup"]{
+    File["/etc/cron.d/${name}_horde_session_cleanup"] {
       content => "*/15 * * * * ${name} tmpwatch 40m /var/www/vhosts/${name}/tmp/sessions/\n",
       require => Exec["install_autoloader_for_${name}"],
     }
 
     if $alarm_cron {
-      File["/etc/cron.d/${name}_horde_alarm"]{
+      File["/etc/cron.d/${name}_horde_alarm"] {
         content => "*/5 * * * * ${name} scl enable ${scl_name} \"PHP_PEAR_SYSCONF_DIR=/var/www/vhosts/${name}/ php -d include_path='/var/www/vhosts/${name}/pear/php:/var/www/vhosts/${name}/www' -d error_log='/var/www/vhosts/${name}/logs/php_error_log' -d safe_mode='off' -d error_reporting='E_ALL & ~E_DEPRECATED' -d apc.enable_cli=1 /var/www/vhosts/${name}/pear/horde-alarms\"\n",
         require => Exec["install_webmail_for_${name}"]
       }
@@ -338,7 +336,7 @@ define horde4::instance(
   $real_install_libs = merge($std_install_libs,$install_libs)
 
   if $real_install_libs['webdav_server'] {
-    exec{
+    exec {
       "install_webdav_server_${name}":
         command => "scl enable ${scl_name} '/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install HTTP_WebDAV_Server-beta'",
         creates => "/var/www/vhosts/${name}/pear/php/HTTP/WebDAV/Server.php",
@@ -347,7 +345,7 @@ define horde4::instance(
     }
   }
   if $real_install_libs['date_holidays'] {
-    exec{
+    exec {
       "install_date_holiday_${name}":
         command => "scl enable ${scl_name} '/var/www/vhosts/${name}/pear/pear -c /var/www/vhosts/${name}/pear.conf install --force Date_Holidays-alpha#all'",
         creates => "/var/www/vhosts/${name}/pear/php/Date/Holidays.php",
