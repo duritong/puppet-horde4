@@ -14,7 +14,7 @@ define horde4::instance (
     'imagick'       => true,
   },
   $manage_sieve             = true,
-  $manage_shorewall         = false,
+  $manage_firewall          = false,
   $manage_nagios            = false,
   $additional_vhost_options = '',
   $additional_php_options   = '',
@@ -142,12 +142,12 @@ define horde4::instance (
   if $ensure == 'present' {
     include horde4::base
 
-    if $manage_shorewall {
-      include shorewall::rules::out::keyserver
-      include shorewall::rules::out::imap
-      include shorewall::rules::out::pop3
+    if $manage_firewall {
+      include firewall::rules::out::keyserver
+      include firewall::rules::out::imap
+      include firewall::rules::out::pop3
       if $manage_sieve {
-        include shorewall::rules::out::managesieve
+        include firewall::rules::out::managesieve
       }
     }
 
