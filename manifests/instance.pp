@@ -308,15 +308,16 @@ define horde4::instance (
       mode    => '0440';
     }
 
+    require tmpwatch
     File["/etc/cron.d/${name}_horde_tmp_cleanup"] {
       content => "1 * * * * ${name} tmpwatch -q -d 12h /var/www/vhosts/${name}/data/ /var/www/vhosts/${name}/tmp/uploads/ /var/www/vhosts/${name}/tmp/tmp\n",
-      require => Exec["install_autoloader_for_${name}"],
+      require => [Exec["install_autoloader_for_${name}"],Package['tmpwatch']],
     }
 
     # Poor mans session timeout
     File["/etc/cron.d/${name}_horde_session_cleanup"] {
       content => "*/15 * * * * ${name} tmpwatch 40m /var/www/vhosts/${name}/tmp/sessions/\n",
-      require => Exec["install_autoloader_for_${name}"],
+      require => [Exec["install_autoloader_for_${name}"],Package['tmpwatch']],
     }
 
     if $alarm_cron {
