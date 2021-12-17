@@ -146,7 +146,7 @@ define horde4::instance (
       include firewall::rules::out::keyserver
       include firewall::rules::out::imap
       include firewall::rules::out::pop3
-      include firewall::rules::out::smtp
+      include firewall::rules::out::smtp_client
       if $manage_sieve {
         include firewall::rules::out::managesieve
       }
