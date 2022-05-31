@@ -18,8 +18,8 @@ define horde4::instance (
   $manage_nagios            = false,
   $additional_vhost_options = '',
   $additional_php_options   = '',
-  $php_installation         = 'scl56',
-  $php_run_mode             = 'fcgid',
+  $php_installation         = 'scl74',
+  $php_run_mode             = 'fpm',
   $php_options              = {},
   $php_settings             = {},
   $configuration            = {},
@@ -83,7 +83,7 @@ define horde4::instance (
     ssl_mode           => 'force',
     allow_override     => 'All',
     php_options        => {
-      additional_open_basedir => "/var/www/vhosts/${name}/pear/:/var/www/vhosts/${name}/logs/:/etc/resolv.conf:/.pearrc:/etc/pki/tls/certs/ca-bundle.crt",
+      additional_open_basedir => "/var/www/vhosts/${name}/pear/:/var/www/vhosts/${name}/logs/:/etc/resolv.conf:/var/www/vhosts/${name}/.pearrc:/etc/pki/tls/certs/ca-bundle.crt:/usr/bin/gpg",
       additional_envs         => {
         'PHP_PEAR_SYSCONF_DIR' => "/var/www/vhosts/${name}",
       },
