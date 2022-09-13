@@ -87,6 +87,9 @@ define horde4::instance (
       additional_envs         => {
         'PHP_PEAR_SYSCONF_DIR' => "/var/www/vhosts/${name}",
       },
+      snuffleupagus_rules     => {
+        '999-disable-xee' => 'sp.xxe_protection.disable();',
+      },
     } + $php_options,
     php_settings       => {
       safe_mode               => 'Off',
